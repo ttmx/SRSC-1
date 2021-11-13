@@ -1,27 +1,28 @@
 import java.io.FileInputStream
-import java.io.InputStream
+import java.io.FileNotFoundException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.util.*
-import java.util.stream.Collectors
+import kotlin.system.exitProcess
 
-fun main(args: Array<String>) {
-    println( System.getProperty("user.dir"))
-    val inputStream: InputStream = FileInputStream("config.properties")
-    if (inputStream == null) {
-        System.err.println("Configuration file not found!")
-        System.exit(1)
+fun main() {
+    lateinit var inputStream: FileInputStream
+    try {
+        inputStream = FileInputStream("config.properties")
+    } catch (e: FileNotFoundException) {
+        println("Configuration file not found!")
+        exitProcess(1)
     }
+
+
     val properties = Properties()
     properties.load(inputStream)
     val remote = properties.getProperty("remote")
     val destinations = properties.getProperty("localdelivery")
     val inSocketAddress: SocketAddress = parseSocketAddress(remote)
-    val outSocketAddressSet =
-        Arrays.stream(destinations.split(",".toRegex()).toTypedArray()).map { s: String -> parseSocketAddress(s) }
-            .collect(Collectors.toSet())
+    val outSocketAddressSet = destinations.split(",").map { s: String -> parseSocketAddress(s) }.toSet()
     val inSocket = DatagramSocket(inSocketAddress)
     val outSocket = DatagramSocket()
     val buffer = ByteArray(4 * 1024)
