@@ -1,0 +1,3 @@
+symmetric=AES/CBC/PKCS5Padding
+sym_password=passbuesegura
+iv=AAAAAAAAAAAAAAAA

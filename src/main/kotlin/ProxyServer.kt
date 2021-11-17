@@ -1,3 +1,4 @@
+import secureDatagrams.SecureDatagramSocket
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.net.DatagramPacket
@@ -23,7 +24,7 @@ fun main() {
     val destinations = properties.getProperty("localdelivery")
     val inSocketAddress: SocketAddress = parseSocketAddress(remote)
     val outSocketAddressSet = destinations.split(",").map { s: String -> parseSocketAddress(s) }.toSet()
-    val inSocket = DatagramSocket(inSocketAddress)
+    val inSocket = SecureDatagramSocket(inSocketAddress)
     val outSocket = DatagramSocket()
     val buffer = ByteArray(4 * 1024)
     while (true) {
@@ -31,7 +32,7 @@ fun main() {
         inSocket.receive(inPacket) // if remote is unicast
         print("*")
         for (outSocketAddress in outSocketAddressSet) {
-            outSocket.send(DatagramPacket(buffer, inPacket.length, outSocketAddress))
+            outSocket.send(DatagramPacket(inPacket.data, inPacket.length, outSocketAddress))
         }
     }
 }

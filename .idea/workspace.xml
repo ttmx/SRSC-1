@@ -4,12 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/InvalidSignatureException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" afterDir="false" />
+    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="We do a little bit of gradling">
+      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/crypto.properites" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/config.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ProxyServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ProxyServer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/StreamServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/StreamServer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,13 +47,16 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Desktop/WA1/WA1" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
-    <property name="settings.editor.selected.configurable" value="MTHome" />
+    <property name="settings.editor.selected.configurable" value="com.maddyhome.idea.vim.ui.VimEmulationConfigurable" />
+  </component>
+  <component name="ReaderModeSettings">
+    <option name="showLigatures" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -57,7 +66,7 @@
       <recent name="secureDatagrams" />
     </key>
   </component>
-  <component name="RunManager" selected="Kotlin.ProxyServerKt">
+  <component name="RunManager" selected="Kotlin.StreamServerKt">
     <configuration name="proj-1 [dependencies]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -89,15 +98,22 @@
     <configuration name="StreamServerKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="StreamServerKt" />
       <module name="SRSC-1.main" />
+      <option name="PROGRAM_PARAMETERS" value="movies/cars.dat localhost 9999" />
+      <shortenClasspath name="NONE" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Gradle.proj-1 [dependencies]" />
+      <item itemvalue="Kotlin.ProxyServerKt" />
+      <item itemvalue="Kotlin.StreamServerKt" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Kotlin.StreamServerKt" />
         <item itemvalue="Kotlin.ProxyServerKt" />
         <item itemvalue="Gradle.proj-1 [dependencies]" />
-        <item itemvalue="Kotlin.StreamServerKt" />
       </list>
     </recent_temporary>
   </component>
@@ -113,6 +129,14 @@
       <workItem from="1636859988617" duration="244000" />
       <workItem from="1636860280296" duration="331000" />
       <workItem from="1636860763806" duration="7389000" />
+      <workItem from="1637019445174" duration="693000" />
+      <workItem from="1637020155420" duration="1026000" />
+      <workItem from="1637098711456" duration="203000" />
+      <workItem from="1637151818907" duration="29000" />
+      <workItem from="1637151858966" duration="166000" />
+      <workItem from="1637152035993" duration="717000" />
+      <workItem from="1637152991456" duration="133000" />
+      <workItem from="1637153139396" duration="22940000" />
     </task>
     <task id="LOCAL-00001" summary="We do a little bit of gradling">
       <created>1636861308410</created>
@@ -127,8 +151,30 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="We do a little bit of gradling" />
     <option name="LAST_COMMIT_MESSAGE" value="We do a little bit of gradling" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="javax.crypto.ShortBufferException" package="javax.crypto" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

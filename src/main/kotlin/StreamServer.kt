@@ -1,3 +1,4 @@
+import secureDatagrams.SecureDatagramSocket
 import java.io.DataInputStream
 import java.io.FileInputStream
 import java.net.DatagramPacket
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
     var time: Long
     val g = DataInputStream(FileInputStream(args[0]))
     val buff = ByteArray(4096)
-    val s = DatagramSocket()
+    val s = SecureDatagramSocket()
     val addr = InetSocketAddress(args[1], args[2].toInt())
     val p = DatagramPacket(buff, buff.size, addr)
     val t0 = System.nanoTime() // tempo de referência para este processo
