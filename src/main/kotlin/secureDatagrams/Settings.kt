@@ -15,6 +15,7 @@ class Settings {
             properties.load(inputStream)
         }
 
+        val algorithm: String = properties.getProperty("algorithm")
         val symmetricSuite: String = properties.getProperty("symmetric_suite")
         val symPassword: String = properties.getProperty("sym_password", "")
         val iv: ByteArray = properties.getProperty("iv", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").decodeHex()
