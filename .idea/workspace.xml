@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="We do a little bit of gradling">
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crypto.properites" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Made stream to proxy to vlc work with hard coded values">
+      <change afterPath="$PROJECT_DIR$/signal.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/SignalServer.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPP.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/config.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ProxyServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ProxyServer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/StreamServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/StreamServer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crypto.properites" beforeDir="false" afterPath="$PROJECT_DIR$/crypto.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" afterDir="false" />
     </list>
@@ -36,6 +33,14 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="20tMSYg8DtnUUgUFuINz070lu0j" />
   <component name="ProjectViewState">
@@ -66,7 +71,7 @@
       <recent name="secureDatagrams" />
     </key>
   </component>
-  <component name="RunManager" selected="Kotlin.StreamServerKt">
+  <component name="RunManager" selected="Kotlin.ProxyServerKt">
     <configuration name="proj-1 [dependencies]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -111,9 +116,9 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Kotlin.StreamServerKt" />
         <item itemvalue="Kotlin.ProxyServerKt" />
         <item itemvalue="Gradle.proj-1 [dependencies]" />
+        <item itemvalue="Kotlin.StreamServerKt" />
       </list>
     </recent_temporary>
   </component>
@@ -136,7 +141,7 @@
       <workItem from="1637151858966" duration="166000" />
       <workItem from="1637152035993" duration="717000" />
       <workItem from="1637152991456" duration="133000" />
-      <workItem from="1637153139396" duration="22940000" />
+      <workItem from="1637153139396" duration="32869000" />
     </task>
     <task id="LOCAL-00001" summary="We do a little bit of gradling">
       <created>1636861308410</created>
@@ -145,7 +150,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636861308410</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Made stream to proxy to vlc work with hard coded values">
+      <created>1637186241931</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1637186241931</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -165,7 +177,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="We do a little bit of gradling" />
-    <option name="LAST_COMMIT_MESSAGE" value="We do a little bit of gradling" />
+    <MESSAGE value="Made stream to proxy to vlc work with hard coded values" />
+    <option name="LAST_COMMIT_MESSAGE" value="Made stream to proxy to vlc work with hard coded values" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
