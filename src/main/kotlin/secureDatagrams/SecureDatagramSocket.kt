@@ -11,19 +11,19 @@ import javax.crypto.spec.IvParameterSpec
 
 class SecureDatagramSocket : DatagramSocket {
 
-    private lateinit var cipher : Cipher
-    private lateinit var key :SecretKey
+    private lateinit var cipher: Cipher
+    private lateinit var key: SecretKey
 
     constructor(a: SocketAddress) : super(a) {
         init()
     }
 
-    constructor() : super(){
+    constructor() : super() {
         init()
     }
 
 
-    private fun init(){
+    private fun init() {
         val kg: KeyGenerator = KeyGenerator.getInstance("AES")
         kg.init(SecureRandom(Settings.symPassword.toByteArray()))
         key = kg.generateKey()
@@ -33,8 +33,8 @@ class SecureDatagramSocket : DatagramSocket {
     override fun send(p: DatagramPacket) {
         // encryption
 //        println("${String(p.data,0,p.length)} ${p.length}")
-        cipher.init(Cipher.ENCRYPT_MODE, key,IvParameterSpec(Settings.iv))
-        p.data = cipher.doFinal(p.data,0,p.length)
+        cipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(Settings.iv))
+        p.data = cipher.doFinal(p.data, 0, p.length)
         super.send(p)
     }
 
@@ -42,6 +42,6 @@ class SecureDatagramSocket : DatagramSocket {
         super.receive(p)
 //        println("${String(p.data,0,p.length)} ${p.length}")
         cipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(Settings.iv))
-        p.data = cipher.doFinal(p.data,0,p.length)
+        p.data = cipher.doFinal(p.data, 0, p.length)
     }
 }

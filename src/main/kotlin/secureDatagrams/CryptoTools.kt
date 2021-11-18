@@ -7,11 +7,11 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.*
 
 class CryptoTools {
-    companion object{
+    companion object {
 
 
-         fun checkSignature(dataB64:String,signatureB64 :String){
-             //TODO Redo this whole thing lmao
+        fun checkSignature(dataB64: String, signatureB64: String) {
+            //TODO Redo this whole thing lmao
             val signature = Base64.getDecoder().decode(signatureB64)
             val ecdsaVerify: Signature = Signature.getInstance(Settings.signatureAlgorithm)
             val publicKeySpec: EncodedKeySpec =
@@ -22,7 +22,7 @@ class CryptoTools {
 
             ecdsaVerify.initVerify(publicKey)
             ecdsaVerify.update(Base64.getDecoder().decode(dataB64))
-            if(!ecdsaVerify.verify(signature)){
+            if (!ecdsaVerify.verify(signature)) {
                 throw InvalidSignatureException()
             }
         }

@@ -1,14 +1,13 @@
-import secureDatagrams.SecureDatagramSocket
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.net.*
+import java.net.ServerSocket
+import java.net.Socket
 import java.util.*
 import kotlin.system.exitProcess
-import kotlinx.coroutines.*
 
-import secureDatagrams.SADKDPPacket
-
-fun main() = runBlocking{
+fun main() = runBlocking {
     lateinit var inputStream: FileInputStream
     try {
         inputStream = FileInputStream("signal.properties")
@@ -27,17 +26,18 @@ fun main() = runBlocking{
     while (true) {
         val s = inSocket.accept()
         launch {
-            SignalServer(userid,proxyboxid,port,s)
+            SignalServer(userid, proxyboxid, port, s)
         }
     }
 }
 
-class SignalServer(val userid:String,val proxyboxid:String,val port:Int,s:Socket) {
-    init{
+class SignalServer(val userid: String, val proxyboxid: String, val port: Int, s: Socket) {
+    init {
         doAuthentication(s)
 
     }
-    private fun doAuthentication(s:Socket){
+
+    private fun doAuthentication(s: Socket) {
         respondHello(s)
 
         respondAuthentication(s)

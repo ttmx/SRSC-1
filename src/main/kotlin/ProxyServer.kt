@@ -23,7 +23,7 @@ fun main() {
     val remote = properties.getProperty("remote")
     val destinations = properties.getProperty("localdelivery")
     val inSocketAddress: SocketAddress = parseSocketAddress(remote)
-    val outSocketAddressSet = destinations.split(",").map { s: String -> parseSocketAddress(s) }.toSet()
+    val outSocketAddressSet = destinations.split(",").map { s -> parseSocketAddress(s) }.toSet()
     val inSocket = SecureDatagramSocket(inSocketAddress)
     val outSocket = DatagramSocket()
     val buffer = ByteArray(4 * 1024)
