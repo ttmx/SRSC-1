@@ -27,10 +27,15 @@ class SecureDatagramSocket : DatagramSocket {
         key = kg.generateKey()
 
         encryptCipher = Cipher.getInstance(Settings.symmetricSuite)
-        encryptCipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(Settings.iv))
-
         decryptCipher = Cipher.getInstance(Settings.symmetricSuite)
-        decryptCipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(Settings.iv))
+
+        if (!"".equals(Settings.iv)) {
+            encryptCipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(Settings.iv))
+            decryptCipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(Settings.iv))
+        } else {
+            encryptCipher.init(Cipher.ENCRYPT_MODE, key)
+            decryptCipher.init(Cipher.DECRYPT_MODE, key)
+        }
 
         hMac = Mac.getInstance(Settings.hmacSuite)
         hMac.init(SecretKeySpec(Settings.hmacKey, Settings.hmacSuite))
