@@ -11,6 +11,7 @@ class CryptoTools {
 
 
          fun checkSignature(dataB64:String,signatureB64 :String){
+             //TODO Redo this whole thing lmao
             val signature = Base64.getDecoder().decode(signatureB64)
             val ecdsaVerify: Signature = Signature.getInstance(Settings.signatureAlgorithm)
             val publicKeySpec: EncodedKeySpec =

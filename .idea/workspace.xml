@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Made stream to proxy to vlc work with hard coded values">
-      <change afterPath="$PROJECT_DIR$/signal.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/SignalServer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPP.kt" afterDir="false" />
+    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Bases for authentication with signal server">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crypto.properites" beforeDir="false" afterPath="$PROJECT_DIR$/crypto.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/Settings.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/RTSPPacket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/RTSPPacket.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,7 +137,7 @@
       <workItem from="1637151858966" duration="166000" />
       <workItem from="1637152035993" duration="717000" />
       <workItem from="1637152991456" duration="133000" />
-      <workItem from="1637153139396" duration="32869000" />
+      <workItem from="1637153139396" duration="35874000" />
     </task>
     <task id="LOCAL-00001" summary="We do a little bit of gradling">
       <created>1636861308410</created>
@@ -157,7 +153,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637186241931</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Bases for authentication with signal server">
+      <created>1637196626061</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1637196626061</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -178,7 +181,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="We do a little bit of gradling" />
     <MESSAGE value="Made stream to proxy to vlc work with hard coded values" />
-    <option name="LAST_COMMIT_MESSAGE" value="Made stream to proxy to vlc work with hard coded values" />
+    <MESSAGE value="Bases for authentication with signal server" />
+    <option name="LAST_COMMIT_MESSAGE" value="Bases for authentication with signal server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
