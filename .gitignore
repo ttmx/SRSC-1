@@ -1,1 +1,5 @@
 /streaming.tgz
+
+build/
+
+.gradle/
