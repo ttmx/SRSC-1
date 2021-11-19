@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Bases for authentication with signal server">
+    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Added dumb amount of classes for messages">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/RTSPPacket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/RTSPPacket.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPPacket.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPP.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +67,7 @@
       <recent name="secureDatagrams" />
     </key>
   </component>
-  <component name="RunManager" selected="Kotlin.ProxyServerKt">
+  <component name="RunManager" selected="Kotlin.StreamServerKt">
     <configuration name="proj-1 [dependencies]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -112,9 +112,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Kotlin.StreamServerKt" />
         <item itemvalue="Kotlin.ProxyServerKt" />
         <item itemvalue="Gradle.proj-1 [dependencies]" />
-        <item itemvalue="Kotlin.StreamServerKt" />
       </list>
     </recent_temporary>
   </component>
@@ -137,7 +137,9 @@
       <workItem from="1637151858966" duration="166000" />
       <workItem from="1637152035993" duration="717000" />
       <workItem from="1637152991456" duration="133000" />
-      <workItem from="1637153139396" duration="35874000" />
+      <workItem from="1637153139396" duration="36847000" />
+      <workItem from="1637274369486" duration="1042000" />
+      <workItem from="1637325781890" duration="7850000" />
     </task>
     <task id="LOCAL-00001" summary="We do a little bit of gradling">
       <created>1636861308410</created>
@@ -160,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637196626061</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Added dumb amount of classes for messages">
+      <created>1637200903196</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1637200903196</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -182,7 +191,8 @@
     <MESSAGE value="We do a little bit of gradling" />
     <MESSAGE value="Made stream to proxy to vlc work with hard coded values" />
     <MESSAGE value="Bases for authentication with signal server" />
-    <option name="LAST_COMMIT_MESSAGE" value="Bases for authentication with signal server" />
+    <MESSAGE value="Added dumb amount of classes for messages" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added dumb amount of classes for messages" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -4,8 +4,11 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
-import java.security.MessageDigest
 import java.security.SecureRandom
+import java.util.*
+import java.util.function.IntFunction
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
@@ -64,15 +67,14 @@ class SecureDatagramSocket : DatagramSocket {
 
     private val version: Byte = 0b0001
     private val msgType: Byte = 0b0000
-    private val firstHeaderByte: Byte = 0b00010000 //TODO
 
     private fun toSimplifiedSRTSPPacket(p: DatagramPacket) {
         val cipherText = ByteArray(1 + 2 + encryptCipher.getOutputSize(p.length) + hMac.macLength)
         val ctLength = encryptCipher.doFinal(p.data, 0, p.length, cipherText, 1 + 2)
         hMac.update(cipherText, 1 + 2, ctLength)
         hMac.doFinal(cipherText, 1 + 2 + ctLength)
-
-        ByteBuffer.wrap(cipherText).put(firstHeaderByte).putShort(ctLength.toShort())
+        ByteBuffer.wrap(cipherText).put(CryptoTools.makeHeader(version,msgType,ctLength.toShort()))
+//        println(BitSet.valueOf(CryptoTools.makeHeader(version,msgType,ctLength)).toBinaryString())
         p.data = cipherText
     }
 
@@ -80,9 +82,7 @@ class SecureDatagramSocket : DatagramSocket {
         val frameSize = ByteBuffer.wrap(p.data).getShort(1)
         val encryptedFrame = p.data.copyOfRange(3, 3 + frameSize)
         val receivedMac = p.data.copyOfRange(3 + frameSize, p.length)
-        if (!MessageDigest.isEqual(hMac.doFinal(encryptedFrame), receivedMac)) {
-            throw IllegalStateException()
-        }
+        CryptoTools.checkHmac(hMac,encryptedFrame,receivedMac)
         p.length = decryptCipher.doFinal(encryptedFrame, 0, encryptedFrame.size, p.data)
     }
 }
