@@ -3,12 +3,7 @@ package secureDatagrams
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
-import java.nio.ByteBuffer
 import java.security.SecureRandom
-import java.util.*
-import java.util.function.IntFunction
-import java.util.stream.Collectors
-import java.util.stream.IntStream
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
@@ -71,13 +66,13 @@ class SecureDatagramSocket : DatagramSocket {
     private fun toSimplifiedSRTSPPacket(p: DatagramPacket) {
         val cipherText = ByteArray(encryptCipher.getOutputSize(p.length))
         val ctLength = encryptCipher.doFinal(p.data, 0, p.length, cipherText)
-        val ep = EncapsulatedPacket(cipherText,ctLength,msgType)
+        val ep = EncapsulatedPacket(cipherText, ctLength, msgType)
 //        println(BitSet.valueOf(CryptoTools.makeHeader(version,msgType,ctLength)).toBinaryString())
         p.data = ep.data
     }
 
     private fun fromSimplifiedSRTSPPacket(p: DatagramPacket) {
-        val ep = EncapsulatedPacket(p.data,p.length)
+        val ep = EncapsulatedPacket(p.data, p.length)
         p.length = decryptCipher.doFinal(ep.dataBytes, 0, ep.len.toInt(), p.data)
     }
 }

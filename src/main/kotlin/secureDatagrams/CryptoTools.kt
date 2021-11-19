@@ -16,8 +16,6 @@ import kotlin.experimental.or
 
 class CryptoTools {
     companion object {
-        private const val version = 1
-
 
         fun checkSignature(dataB64: String, signatureB64: String) {
             //TODO Redo this whole thing lmao
@@ -35,25 +33,24 @@ class CryptoTools {
                 throw InvalidSignatureException()
             }
         }
-        fun checkHmac(hMac: Mac, frame:ByteArray, receivedMac:ByteArray){
 
+        fun checkHmac(hMac: Mac, frame: ByteArray, receivedMac: ByteArray) {
             if (!MessageDigest.isEqual(hMac.doFinal(frame), receivedMac)) {
                 throw IllegalStateException()
             }
         }
 
-        fun makeHeader(version:Byte, msgType: Byte,len: Short): ByteArray {
-            val bb = ByteArray(3)
-            val arr = ByteBuffer.wrap(bb)
-            arr.put((version and 15).toInt().shl(4).toByte() or
-                    (msgType and 15))
-            arr.putShort(len)
-            return bb
+        fun makeHeader(version: Byte, msgType: Byte, len: Short): ByteArray {
+            val versionAndType = version.toInt().shl(4).toByte() or (msgType and 0x01)
+            return ByteBuffer.wrap(ByteArray(EncapsulatedPacket.HEADER_SIZE))
+                .put(versionAndType)
+                .putShort(len)
+                .array()
         }
 
         fun BitSet.toBinaryString(): String? {
             return IntStream.range(0, length())
-                .mapToObj { b: Int -> if (get(b)) "1" else "0"}
+                .mapToObj { b: Int -> if (get(b)) "1" else "0" }
                 .collect(Collectors.joining())
         }
 

@@ -8,8 +8,8 @@ import kotlin.experimental.and
 class EncapsulatedPacket {
     companion object {
         private val hMac: Mac = Mac.getInstance(Settings.hmacSuite)
-        private const val headerSize = 1 + 2
-        private const val version: Byte = 1
+        const val HEADER_SIZE = 1 + 2
+        const val VERSION: Byte = 1
 
         init {
             hMac.init(SecretKeySpec(Settings.hmacKey, Settings.hmacSuite))
@@ -18,38 +18,32 @@ class EncapsulatedPacket {
 
     val data: ByteArray
     val len: Short
-        get() {
-            return ByteBuffer.wrap(this.data).getShort(1)
-        }
+        get() = ByteBuffer.wrap(this.data).getShort(1)
+
     val msgType: Byte
-        get() {
-            return this.data[0] and 15
-        }
+        get() = this.data[0] and 0x01
+
     val version: Byte
-        get() {
-            return (this.data[0].toInt() shr 4).toByte()
-        }
+        get() = (this.data[0].toInt() ushr 4).toByte()
+
     private val hmacBytes: ByteArray
-        get() {
-            return this.data.copyOfRange(headerSize + len, headerSize + len + hMac.macLength)
-        }
+        get() = this.data.copyOfRange(HEADER_SIZE + len, HEADER_SIZE + len + hMac.macLength)
 
     val dataBytes: ByteArray
-        get() {
-            return this.data.copyOfRange(headerSize, headerSize + len)
-        }
-    constructor(data: ByteArray, len: Int) {
-        this.data = data
-        CryptoTools.checkHmac(hMac,dataBytes,hmacBytes)
+        get() = this.data.copyOfRange(HEADER_SIZE, HEADER_SIZE + len)
+
+
+    constructor(packaged: ByteArray, len: Int) {
+        this.data = packaged
+        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
     }
 
-
-    constructor(data: ByteArray, len: Int, msgType: Byte) {
-        this.data = ByteArray(headerSize + len + hMac.macLength)
-        data.copyInto(this.data, headerSize)
-        ByteBuffer.wrap(this.data).put(CryptoTools.makeHeader(1, msgType, len.toShort()))
-        hMac.update(this.data, headerSize, len)
-        hMac.doFinal(this.data, headerSize + len)
+    constructor(raw: ByteArray, len: Int, msgType: Byte) {
+        this.data = ByteArray(HEADER_SIZE + len + hMac.macLength)
+        raw.copyInto(this.data, HEADER_SIZE)
+        ByteBuffer.wrap(this.data).put(CryptoTools.makeHeader(VERSION, msgType, len.toShort()))
+        hMac.update(this.data, HEADER_SIZE, len)
+        hMac.doFinal(this.data, HEADER_SIZE + len)
     }
 
 

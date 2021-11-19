@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Socket;
 import java.util.Properties;
 
 public class SignalServer {
@@ -49,7 +48,7 @@ public class SignalServer {
 
         }
 
-        private void doAuthentication(Socket s) {
+        private void doAuthentication(DatagramSocket s) {
             respondHello(s);
 
             respondAuthentication(s);
@@ -57,15 +56,15 @@ public class SignalServer {
             respondPayment(s);
         }
 
-        private void respondHello(Socket s) {
+        private void respondHello(DatagramSocket s) {
             //Todo
         }
 
-        private void respondAuthentication(Socket s) {
+        private void respondAuthentication(DatagramSocket s) {
             //TODO("Not yet implemented")
         }
 
-        private void respondPayment(Socket s) {
+        private void respondPayment(DatagramSocket s) {
             //TODO("Not yet implemented")
         }
     }
