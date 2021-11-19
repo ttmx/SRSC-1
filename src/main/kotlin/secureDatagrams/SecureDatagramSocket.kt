@@ -69,20 +69,15 @@ class SecureDatagramSocket : DatagramSocket {
     private val msgType: Byte = 0b0000
 
     private fun toSimplifiedSRTSPPacket(p: DatagramPacket) {
-        val cipherText = ByteArray(1 + 2 + encryptCipher.getOutputSize(p.length) + hMac.macLength)
-        val ctLength = encryptCipher.doFinal(p.data, 0, p.length, cipherText, 1 + 2)
-        hMac.update(cipherText, 1 + 2, ctLength)
-        hMac.doFinal(cipherText, 1 + 2 + ctLength)
-        ByteBuffer.wrap(cipherText).put(CryptoTools.makeHeader(version,msgType,ctLength.toShort()))
+        val cipherText = ByteArray(encryptCipher.getOutputSize(p.length))
+        val ctLength = encryptCipher.doFinal(p.data, 0, p.length, cipherText)
+        val ep = EncapsulatedPacket(cipherText,ctLength,msgType)
 //        println(BitSet.valueOf(CryptoTools.makeHeader(version,msgType,ctLength)).toBinaryString())
-        p.data = cipherText
+        p.data = ep.data
     }
 
     private fun fromSimplifiedSRTSPPacket(p: DatagramPacket) {
-        val frameSize = ByteBuffer.wrap(p.data).getShort(1)
-        val encryptedFrame = p.data.copyOfRange(3, 3 + frameSize)
-        val receivedMac = p.data.copyOfRange(3 + frameSize, p.length)
-        CryptoTools.checkHmac(hMac,encryptedFrame,receivedMac)
-        p.length = decryptCipher.doFinal(encryptedFrame, 0, encryptedFrame.size, p.data)
+        val ep = EncapsulatedPacket(p.data,p.length)
+        p.length = decryptCipher.doFinal(ep.dataBytes, 0, ep.len.toInt(), p.data)
     }
 }

@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Added dumb amount of classes for messages">
+    <list default="true" id="71fec3f5-3aac-46fe-ac0e-84cf9691fc8f" name="Changes" comment="Separated header making">
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/EncapsulatedPacket.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/CryptoTools.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SADKDPP.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/SignalServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/SignalServer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/secureDatagrams/SecureDatagramSocket.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -139,7 +139,7 @@
       <workItem from="1637152991456" duration="133000" />
       <workItem from="1637153139396" duration="36847000" />
       <workItem from="1637274369486" duration="1042000" />
-      <workItem from="1637325781890" duration="7850000" />
+      <workItem from="1637325781890" duration="13111000" />
     </task>
     <task id="LOCAL-00001" summary="We do a little bit of gradling">
       <created>1636861308410</created>
@@ -169,7 +169,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637200903196</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Separated header making">
+      <created>1637338725917</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1637338725917</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -192,7 +199,8 @@
     <MESSAGE value="Made stream to proxy to vlc work with hard coded values" />
     <MESSAGE value="Bases for authentication with signal server" />
     <MESSAGE value="Added dumb amount of classes for messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added dumb amount of classes for messages" />
+    <MESSAGE value="Separated header making" />
+    <option name="LAST_COMMIT_MESSAGE" value="Separated header making" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
