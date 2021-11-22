@@ -15,6 +15,7 @@
  *       Both configurable in the file config.properties
  */
 
+import proxy.Authentication;
 import secureDatagrams.SecureDatagramSocket;
 
 import java.io.FileInputStream;
@@ -42,6 +43,10 @@ class hjUDPproxy {
         properties.load(inputStream);
         String remote = properties.getProperty("remote");
         String destinations = properties.getProperty("localdelivery");
+
+        String signal = properties.getProperty("signal");
+        proxy.Authentication auth = new Authentication(parseSocketAddress(signal));
+        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId");
 
         SocketAddress inSocketAddress = parseSocketAddress(remote);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(","))
