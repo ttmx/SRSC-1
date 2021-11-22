@@ -1,13 +1,11 @@
 package proxy
 
+import coins.Coin
 import coins.CoinsRepository
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import sadkdp.AuthenticationDto
-import sadkdp.AuthenticationRequestDto
-import sadkdp.HelloDto
-import sadkdp.PaymentRequestDto
+import sadkdp.*
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
 import users.UsersRepository
@@ -15,6 +13,7 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Signature
@@ -38,6 +37,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         val authenticationRequest = receiveAuthenticationRequest()
         sendAuthentication(authenticationRequest, authUser.password, movieId)
         val paymentRequest = receivePaymentRequest()
+        sendPayment(paymentRequest)
 
     }
 
@@ -98,6 +98,26 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
             throw RuntimeException(/*TODO*/)
         }
         return payload
+    }
+
+    private fun sendPayment(paymentRequest: PaymentRequestDto.Payload) {
+        fun privateKey(): PrivateKey {
+            TODO()
+        }
+        fun getCoin(): Coin {
+            TODO("check price")
+        }
+        val (n2_, n3, price) = paymentRequest
+        val payment = PaymentDto.Payload(n3 + 1, SecureRandom().nextInt(), getCoin())
+        val encoded = Json.encodeToString(payment)
+        val privateSignature = Signature.getInstance("SHA512withECDSA", "BC")
+        privateSignature.initSign(privateKey())
+        privateSignature.update(encoded.toByteArray())
+        val signature = privateSignature.sign()
+        
+        val out = Json.encodeToString(PaymentDto(payment, signature)).toByteArray()
+        val ep = EncapsulatedPacket(out, out.size, 5) //TODO version needs to be parameterized hmac also broken
+        outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
 
     private fun receivePacket(): EncapsulatedPacket {
