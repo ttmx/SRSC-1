@@ -42,7 +42,7 @@ internal class SignalHelper(
         var nonce = CryptoTools.rand(256)
         val a = SADKDPPacket.Authentication.Challenge(4, nonce, "")
         //Todo currently single user and single proxyboxid
-        if (/*nonce != previous nonce +1*/false) {
+        if (/* TODO nonce != previous nonce +1*/false) {
             return
         }
         //Todo dynamic price
