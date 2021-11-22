@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import sadkdp.AuthenticationDto
 import sadkdp.AuthenticationRequestDto
 import sadkdp.HelloDto
+import sadkdp.PaymentRequestDto
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
 import users.UsersRepository
@@ -14,7 +15,9 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.security.PublicKey
 import java.security.SecureRandom
+import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
@@ -32,8 +35,9 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         val authUser = users.authUser(userId, password)
         val coin = coins.getCoin(coinId)
         sendHello(userId, proxyBoxId)
-        val authenticationRequestDto = receiveAuthenticationRequest()
-        sendAuthentication(authenticationRequestDto, authUser.password, movieId)
+        val authenticationRequest = receiveAuthenticationRequest()
+        sendAuthentication(authenticationRequest, authUser.password, movieId)
+        val paymentRequest = receivePaymentRequest()
 
     }
 
@@ -79,6 +83,21 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         )
         val ep = EncapsulatedPacket(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+    }
+
+    private fun receivePaymentRequest(): PaymentRequestDto.Payload {
+        fun publicKey(): PublicKey {
+            TODO()
+        }
+        val data = receivePacket()
+        val (payload, signature1) = Json.decodeFromString<PaymentRequestDto>(data.dataBytes.toString())
+        val signature = Signature.getInstance("SHA512withECDSA", "BC")
+        signature.initVerify(publicKey())
+        signature.update(signature1)
+        if (!signature.verify(Json.encodeToString(payload).toByteArray())) {
+            throw RuntimeException(/*TODO*/)
+        }
+        return payload
     }
 
     private fun receivePacket(): EncapsulatedPacket {
