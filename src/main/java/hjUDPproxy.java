@@ -25,6 +25,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
@@ -39,14 +40,13 @@ class hjUDPproxy {
             System.err.println("Configuration file not found!");
             System.exit(1);
         }
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         Properties properties = new Properties();
         properties.load(inputStream);
         String remote = properties.getProperty("remote");
         String destinations = properties.getProperty("localdelivery");
 
         String signal = properties.getProperty("signal");
-        proxy.Authentication auth = new Authentication(parseSocketAddress(signal));
-        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId");
 
         SocketAddress inSocketAddress = parseSocketAddress(remote);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(","))
@@ -54,6 +54,10 @@ class hjUDPproxy {
                 .collect(Collectors.toSet());
 
         DatagramSocket inSocket = new SecureDatagramSocket(inSocketAddress);
+
+        proxy.Authentication auth = new Authentication(inSocket, parseSocketAddress(signal));
+        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", );
+
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 

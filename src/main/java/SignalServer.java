@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.security.Security;
 import java.util.Properties;
 
 public class SignalServer {
@@ -17,6 +18,7 @@ public class SignalServer {
             System.err.println("Configuration file not found!");
             System.exit(1);
         }
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         Properties properties = new Properties();
         properties.load(inputStream);
         String userid = properties.getProperty("userid");

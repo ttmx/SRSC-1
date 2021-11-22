@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.security.Security;
 
 class hjStreamServer {
 
@@ -20,6 +21,7 @@ class hjStreamServer {
             System.out.println("        or: mySend <movie> <ip-unicast-address> <port>");
             System.exit(-1);
         }
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         int size;
         int csize = 0;

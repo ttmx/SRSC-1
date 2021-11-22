@@ -24,7 +24,7 @@ internal class SignalHelper(
     }
 
     private fun respondHello(p: EncapsulatedPacket) {
-        val d = Json.decodeFromString<SADKDPPacket.Hello>(p.dataBytes.toString())
+        val d = Json.decodeFromString<sadkdp.HelloDto>(p.dataBytes.toString())
         //Todo currently single user and single proxyboxid
         if (d.proxyBoxId != proxyboxid || d.userId != userid) {
             return
@@ -32,7 +32,7 @@ internal class SignalHelper(
         val salt = CryptoTools.salt(4)//Todo save this???
         val counter = CryptoTools.rand(256)
         val nonce = CryptoTools.rand(256)
-        val toSend = Json.encodeToString(SADKDPPacket.AuthenticationRequest(nonce, salt, counter)).toByteArray()
+        val toSend = Json.encodeToString(sadkdp.AuthenticationRequestDto(nonce, salt, counter)).toByteArray()
         s.send(DatagramPacket(toSend, toSend.size, p.from, p.port))
     }
 
