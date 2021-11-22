@@ -11,12 +11,12 @@ class SADKDPPacket {
 
     data class Hello(val userId: String, val proxyBoxId: String)
 
-    data class AuthenticationRequest(val n1: String, val salt: String, val counter: Int)
+    data class AuthenticationRequest(val n1: Int, val salt: String, val counter: Int)
 
     @Serializable
     data class Authentication(val challengeB64: String) {
         @Serializable
-        data class Challenge(val n1: String, val n2: String, val movieId: String)
+        data class Challenge(val n1: Int, val n2: Int, val movieId: String)
 
         val challengeBytes: ByteArray = Base64.getDecoder().decode(challengeB64)
     }

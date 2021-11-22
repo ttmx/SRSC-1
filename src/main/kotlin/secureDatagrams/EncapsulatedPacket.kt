@@ -1,9 +1,12 @@
 package secureDatagrams
 
+import java.net.DatagramPacket
+import java.net.InetAddress
 import java.nio.ByteBuffer
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.and
+import kotlin.properties.Delegates
 
 class EncapsulatedPacket {
     companion object {
@@ -16,6 +19,8 @@ class EncapsulatedPacket {
         }
     }
 
+    var port by Delegates.notNull<Int>()
+    lateinit var from: InetAddress
     val data: ByteArray
     val len: Short
         get() = ByteBuffer.wrap(this.data).getShort(1)
@@ -33,8 +38,17 @@ class EncapsulatedPacket {
         get() = this.data.copyOfRange(HEADER_SIZE, HEADER_SIZE + len)
 
 
-    constructor(packaged: ByteArray, len: Int) {
-        this.data = packaged
+    constructor(data: ByteArray, address: InetAddress, port: Int) {
+        this.data = data
+        this.from = address
+        this.port = port
+        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
+    }
+
+    constructor(packet: DatagramPacket) {
+        this.data = packet.data
+        this.from = packet.address
+        this.port = packet.port
         CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
     }
 

@@ -72,7 +72,7 @@ class SecureDatagramSocket : DatagramSocket {
     }
 
     private fun fromSimplifiedSRTSPPacket(p: DatagramPacket) {
-        val ep = EncapsulatedPacket(p.data, p.length)
+        val ep = EncapsulatedPacket(p)
         p.length = decryptCipher.doFinal(ep.dataBytes, 0, ep.len.toInt(), p.data)
     }
 }

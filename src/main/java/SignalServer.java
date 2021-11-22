@@ -1,3 +1,5 @@
+import secureDatagrams.SignalHelper;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -21,7 +23,7 @@ public class SignalServer {
         String proxyboxid = properties.getProperty("proxyboxid");
         int port = Integer.parseInt(properties.getProperty("port"));
         DatagramSocket s = new DatagramSocket(port);
-        Helper ss = new Helper(userid, proxyboxid, port, s);
+        SignalHelper ss = new SignalHelper(userid, proxyboxid, port, s);
         while (true) {
             byte[] buff = new byte[4096];
             DatagramPacket p = new DatagramPacket(buff, buff.length);
@@ -30,42 +32,4 @@ public class SignalServer {
         }
     }
 
-    static class Helper {
-
-        private final String userid;
-        private final String proxyboxid;
-        private final int port;
-        private final DatagramSocket s;
-
-        public Helper(String userid, String proxyboxid, int port, DatagramSocket s) {
-            this.userid = userid;
-            this.proxyboxid = proxyboxid;
-            this.port = port;
-            this.s = s;
-        }
-
-        private void processMessage(DatagramPacket p) {
-
-        }
-
-        private void doAuthentication(DatagramSocket s) {
-            respondHello(s);
-
-            respondAuthentication(s);
-
-            respondPayment(s);
-        }
-
-        private void respondHello(DatagramSocket s) {
-            //Todo
-        }
-
-        private void respondAuthentication(DatagramSocket s) {
-            //TODO("Not yet implemented")
-        }
-
-        private void respondPayment(DatagramSocket s) {
-            //TODO("Not yet implemented")
-        }
-    }
 }
