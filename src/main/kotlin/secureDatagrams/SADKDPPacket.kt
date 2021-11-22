@@ -8,11 +8,6 @@ import java.util.*
 
 class SADKDPPacket {
 
-
-    data class Hello(val userId: String, val proxyBoxId: String)
-
-    data class AuthenticationRequest(val n1: Int, val salt: String, val counter: Int)
-
     @Serializable
     data class Authentication(val challengeB64: String) {
         @Serializable
