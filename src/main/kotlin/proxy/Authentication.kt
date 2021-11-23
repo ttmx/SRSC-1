@@ -38,7 +38,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         sendAuthentication(authenticationRequest, authUser.password, movieId)
         val paymentRequest = receivePaymentRequest()
         sendPayment(paymentRequest)
-
+        receiveTicketCredentials()
     }
 
     private fun sendHello(userId: String, proxyBoxId: String) {
@@ -89,6 +89,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         fun publicKey(): PublicKey {
             TODO()
         }
+
         val data = receivePacket()
         val (payload, signature1) = Json.decodeFromString<PaymentRequestDto>(data.dataBytes.toString())
         val signature = Signature.getInstance("SHA512withECDSA", "BC")
@@ -104,6 +105,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         fun privateKey(): PrivateKey {
             TODO()
         }
+
         fun getCoin(): Coin {
             TODO("check price")
         }
@@ -114,10 +116,34 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         privateSignature.initSign(privateKey())
         privateSignature.update(encoded.toByteArray())
         val signature = privateSignature.sign()
-        
+
         val out = Json.encodeToString(PaymentDto(payment, signature)).toByteArray()
         val ep = EncapsulatedPacket(out, out.size, 5) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+    }
+
+    private fun receiveTicketCredentials() {
+        fun publicKey(): PublicKey {
+            TODO()
+        }
+
+        fun privateKey(): PrivateKey {
+            TODO()
+        }
+
+        val data = receivePacket()
+        val (payload, signature1) = Json.decodeFromString<TicketCredentialsDto>(data.dataBytes.toString())
+        val signature = Signature.getInstance("SHA512withECDSA", "BC")
+        signature.initVerify(publicKey())
+        signature.update(signature1)
+        if (!signature.verify(Json.encodeToString(payload).toByteArray())) {
+            throw RuntimeException(/*TODO*/)
+        }
+        val (proxyPayload, streamingPayload) = payload
+        val cipher = Cipher.getInstance("ECIES", "BC")
+        cipher.init(Cipher.DECRYPT_MODE, privateKey())
+        val cipherText = cipher.doFinal(proxyPayload)
+        TODO("deserialize")
     }
 
     private fun receivePacket(): EncapsulatedPacket {
