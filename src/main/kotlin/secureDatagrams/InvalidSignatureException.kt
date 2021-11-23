@@ -1,5 +1,3 @@
 package secureDatagrams
 
-class InvalidSignatureException : Exception() {
-
-}
+class InvalidSignatureException : Exception()

@@ -18,25 +18,26 @@ class SecureDatagramSocket : DatagramSocket {
     private val decryptCipher: Cipher
     private val key: SecretKey
     private val hMac: Mac
+    private val sett:Settings = Settings.getSettingsFromFile("signal")
 
     init {
-        val kg = KeyGenerator.getInstance(Settings.algorithm)
-        kg.init(SecureRandom(Settings.symPassword.toByteArray()))
+        //TODO change this up
+        val kg = KeyGenerator.getInstance(sett.algorithm)
+        kg.init(SecureRandom(sett.symPassword.toByteArray()))
         key = kg.generateKey()
+        encryptCipher = Cipher.getInstance(sett.symmetricSuite)
+        decryptCipher = Cipher.getInstance(sett.symmetricSuite)
 
-        encryptCipher = Cipher.getInstance(Settings.symmetricSuite)
-        decryptCipher = Cipher.getInstance(Settings.symmetricSuite)
-
-        if (!"".equals(Settings.iv)) {
-            encryptCipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(Settings.iv))
-            decryptCipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(Settings.iv))
+        if (sett.iv != null) {
+            encryptCipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(sett.iv))
+            decryptCipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(sett.iv))
         } else {
             encryptCipher.init(Cipher.ENCRYPT_MODE, key)
             decryptCipher.init(Cipher.DECRYPT_MODE, key)
         }
 
-        hMac = Mac.getInstance(Settings.hmacSuite)
-        hMac.init(SecretKeySpec(Settings.hmacKey, Settings.hmacSuite))
+        hMac = Mac.getInstance(sett.hmacSuite)
+        hMac.init(SecretKeySpec(sett.hmacKey, sett.hmacSuite))
     }
 
     constructor(a: SocketAddress) : super(a)

@@ -1,36 +1,45 @@
 package secureDatagrams
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.FileInputStream
-import java.util.*
 
-class Settings {
+
+@Serializable
+data class Settings(
+    val algorithm: String,
+    val symmetricSuite: String,
+    val symPassword: String,
+    var hmacSuite: String,
+    private val ivHex: String?,
+    private val hmacKeyHex: String
+) {
     companion object {
-        //TODO Setup keys
-
-        val publicKeySS = ByteArray(2)
-        private val inputStream: FileInputStream = FileInputStream("crypto.properties")
-        private val properties = Properties()
-
-        init {
-            properties.load(inputStream)
+        const val signatureAlgorithm = "SHA512withECDSA"
+        fun getSettingsFromFile(serverType: String): Settings {
+            return Json.decodeFromString(
+                String(
+                    FileInputStream("config/$serverType/crypto.json")
+                        .readAllBytes()
+                )
+            )
         }
-
-        val algorithm: String = properties.getProperty("algorithm")
-        val symmetricSuite: String = properties.getProperty("symmetric_suite")
-        val symPassword: String = properties.getProperty("sym_password", "")
-        val iv: ByteArray = properties.getProperty("iv", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").decodeHex()
-        val hmacSuite: String = properties.getProperty("hmac_suite")
-        val hmacKey = properties.getProperty("hmac_key").decodeHex()
-
-        private fun String.decodeHex(): ByteArray {
-            check(length % 2 == 0) { "Must have an even length" }
-
-            return chunked(2)
-                .map { it.toInt(16).toByte() }
-                .toByteArray()
-        }
-
-        const val signatureAlgorithm = "SHA256withECDSA"
     }
+    //TODO Setup keys
 
+    val iv: ByteArray?
+        get() = ivHex?.decodeHex()
+
+    val hmacKey: ByteArray
+        get() = hmacKeyHex.decodeHex()
+
+
+    private fun String.decodeHex(): ByteArray {
+        check(length % 2 == 0) { "Must have an even length" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+    }
 }

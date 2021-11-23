@@ -55,11 +55,14 @@ class hjUDPproxy {
 
         DatagramSocket inSocket = new SecureDatagramSocket(inSocketAddress);
 
+        System.out.print("Starting proxy server");
         proxy.Authentication auth = new Authentication(inSocket, parseSocketAddress(signal));
         auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
 
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
+
+
 
         while (true) {
             DatagramPacket inPacket = new DatagramPacket(buffer, buffer.length);

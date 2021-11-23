@@ -10,12 +10,14 @@ import kotlin.properties.Delegates
 
 class EncapsulatedPacket {
     companion object {
-        private val hMac: Mac = Mac.getInstance(Settings.hmacSuite)
+        private val sett :Settings = Settings.getSettingsFromFile("signal")
+
+        private val hMac: Mac = Mac.getInstance(sett.hmacSuite)
         const val HEADER_SIZE = 1 + 2
         const val VERSION: Byte = 1
 
         init {
-            hMac.init(SecretKeySpec(Settings.hmacKey, Settings.hmacSuite))
+            hMac.init(SecretKeySpec(sett.hmacKey, sett.hmacSuite))
         }
     }
 
