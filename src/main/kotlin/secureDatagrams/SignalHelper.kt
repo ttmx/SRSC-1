@@ -1,8 +1,8 @@
 package secureDatagrams
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.util.*
@@ -24,7 +24,7 @@ internal class SignalHelper(
     }
 
     private fun respondHello(p: EncapsulatedPacket) {
-        val d = Json.decodeFromString<sadkdp.HelloDto>(p.dataBytes.toString())
+        val d = ProtoBuf.decodeFromByteArray<sadkdp.HelloDto>(p.dataBytes)
         //Todo currently single user and single proxyboxid
         if (d.proxyBoxId != proxyboxid || d.userId != userid) {
             return
@@ -32,12 +32,12 @@ internal class SignalHelper(
         val salt = CryptoTools.salt(4)//Todo save this???
         val counter = CryptoTools.rand(256)
         val nonce = CryptoTools.rand(256)
-        val toSend = Json.encodeToString(sadkdp.AuthenticationRequestDto(nonce, salt, counter)).toByteArray()
+        val toSend = ProtoBuf.encodeToByteArray(sadkdp.AuthenticationRequestDto(nonce, salt, counter))
         s.send(DatagramPacket(toSend, toSend.size, p.from, p.port))
     }
 
     private fun respondAuthentication(p: EncapsulatedPacket) {
-        val d = Json.decodeFromString<SADKDPPacket.Authentication>(p.dataBytes.toString())
+        val d = ProtoBuf.decodeFromByteArray<SADKDPPacket.Authentication>(p.dataBytes)
         //TODO ACTUALLY DECODE THIS AND NOT USE STATIC VALUEs
         var nonce = CryptoTools.rand(256)
         val a = SADKDPPacket.Authentication.Challenge(4, nonce, "")
@@ -50,11 +50,11 @@ internal class SignalHelper(
         nonce = CryptoTools.rand(256)
         val f = SADKDPPacket.PaymentRequest.ChallResponse(10f, 5, nonce)
         val k = SADKDPPacket.PaymentRequest(
-            Base64.getEncoder().encodeToString(Json.encodeToString(f).toByteArray()),
-            "I dont know lol" // Todo
+            ProtoBuf.encodeToByteArray(f),
+            ProtoBuf.encodeToByteArray("I dont know lol") // Todo
         )
 
-        val toSend = Json.encodeToString(k).toByteArray()
+        val toSend = ProtoBuf.encodeToByteArray(k)
         s.send(DatagramPacket(toSend, toSend.size, p.from, p.port))
     }
 

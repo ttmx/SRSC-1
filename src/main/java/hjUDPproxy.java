@@ -56,7 +56,7 @@ class hjUDPproxy {
         DatagramSocket inSocket = new SecureDatagramSocket(inSocketAddress);
 
         proxy.Authentication auth = new Authentication(inSocket, parseSocketAddress(signal));
-        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", );
+        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
 
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];

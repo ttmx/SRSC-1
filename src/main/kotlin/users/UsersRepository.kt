@@ -10,16 +10,15 @@ class UsersRepository {
     private val users = HashMap<String, User>()
 
     init {
-        users["user"] = User("user", "password") //TODO hash
         val inputString: String = try {
             FileInputStream("users.json").reader().readText()
         } catch (e: FileNotFoundException) {
             System.err.println("Configuration file not found!")
             exitProcess(1)
         }
-        val userData = Json.decodeFromString<MutableList<User>>(inputString)
+        val userData = Json.decodeFromString<List<User>>(inputString)
 
-        for (u in userData){
+        for (u in userData) {
             users[u.userId] = u
         }
     }

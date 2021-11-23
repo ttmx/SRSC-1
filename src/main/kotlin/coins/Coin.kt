@@ -1,15 +1,14 @@
 package coins
 
-import kotlinx.serialization.Contextual
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
-import java.time.LocalDate
+
 
 @Serializable
 data class Coin(
     val coinId: String,
     val coinIssuer: String,
     val value: Int,
-    @Contextual
     val expireDate: LocalDate,
     val coinAuthenticity: ByteArray,
     val IssueSignature: ByteArray,

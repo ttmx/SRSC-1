@@ -42,7 +42,7 @@ class CryptoTools {
         }
 
         fun makeHeader(version: Byte, msgType: Byte, len: Short): ByteArray {
-            val versionAndType = version.toInt().shl(4).toByte() or (msgType and 0x01)
+            val versionAndType = version.toInt().shl(4).toByte() or (msgType and 0x0F)
             return ByteBuffer.wrap(ByteArray(EncapsulatedPacket.HEADER_SIZE))
                 .put(versionAndType)
                 .putShort(len)

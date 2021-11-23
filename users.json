@@ -1,5 +1,9 @@
 [
   {
+    "userId": "user",
+    "password": "password"
+  },
+  {
     "userId": "user1",
     "password": "password1"
   },

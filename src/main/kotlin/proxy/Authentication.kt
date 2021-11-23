@@ -2,9 +2,9 @@ package proxy
 
 import coins.Coin
 import coins.CoinsRepository
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import sadkdp.*
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
@@ -42,7 +42,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
     }
 
     private fun sendHello(userId: String, proxyBoxId: String) {
-        val helloDto = Json.encodeToString(HelloDto(userId, proxyBoxId)).toByteArray()
+        val helloDto = ProtoBuf.encodeToByteArray(HelloDto(userId, proxyBoxId))
         val packet = ByteBuffer.allocate(EncapsulatedPacket.HEADER_SIZE + helloDto.size)
             .put(CryptoTools.makeHeader(0b010/*TODO*/, 0b001, helloDto.size.toShort()))
             .put(helloDto)
@@ -52,7 +52,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
 
     private fun receiveAuthenticationRequest(): AuthenticationRequestDto {
         val data = receivePacket()
-        return Json.decodeFromString(data.dataBytes.toString())
+        return ProtoBuf.decodeFromByteArray(data.dataBytes)
     }
 
     private fun sendAuthentication(
@@ -79,7 +79,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         )
 
         val out = cEnc.doFinal(
-            Json.encodeToString(AuthenticationDto(n1 + 1, SecureRandom().nextInt(), movieId)).toByteArray()
+            ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, SecureRandom().nextInt(), movieId))
         )
         val ep = EncapsulatedPacket(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
@@ -91,11 +91,11 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         }
 
         val data = receivePacket()
-        val (payload, signature1) = Json.decodeFromString<PaymentRequestDto>(data.dataBytes.toString())
+        val (payload, signature1) = ProtoBuf.decodeFromByteArray<PaymentRequestDto>(data.dataBytes)
         val signature = Signature.getInstance("SHA512withECDSA", "BC")
         signature.initVerify(publicKey())
         signature.update(signature1)
-        if (!signature.verify(Json.encodeToString(payload).toByteArray())) {
+        if (!signature.verify(ProtoBuf.encodeToByteArray(payload))) {
             throw RuntimeException(/*TODO*/)
         }
         return payload
@@ -111,13 +111,13 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         }
         val (n2_, n3, price) = paymentRequest
         val payment = PaymentDto.Payload(n3 + 1, SecureRandom().nextInt(), getCoin())
-        val encoded = Json.encodeToString(payment)
+        val encoded = ProtoBuf.encodeToByteArray(payment)
         val privateSignature = Signature.getInstance("SHA512withECDSA", "BC")
         privateSignature.initSign(privateKey())
-        privateSignature.update(encoded.toByteArray())
+        privateSignature.update(encoded)
         val signature = privateSignature.sign()
 
-        val out = Json.encodeToString(PaymentDto(payment, signature)).toByteArray()
+        val out = ProtoBuf.encodeToByteArray(PaymentDto(payment, signature))
         val ep = EncapsulatedPacket(out, out.size, 5) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
@@ -132,11 +132,11 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         }
 
         val data = receivePacket()
-        val (payload, signature1) = Json.decodeFromString<TicketCredentialsDto>(data.dataBytes.toString())
+        val (payload, signature1) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
         val signature = Signature.getInstance("SHA512withECDSA", "BC")
         signature.initVerify(publicKey())
         signature.update(signature1)
-        if (!signature.verify(Json.encodeToString(payload).toByteArray())) {
+        if (!signature.verify(ProtoBuf.encodeToByteArray(payload))) {
             throw RuntimeException(/*TODO*/)
         }
         val (proxyPayload, streamingPayload) = payload
