@@ -13,7 +13,7 @@ public class SignalServer {
     public static void main(String[] args) throws Exception {
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream("signal.properties");
+            inputStream = new FileInputStream("config/signal/signal.properties");
         } catch (FileNotFoundException e) {
             System.err.println("Configuration file not found!");
             System.exit(1);

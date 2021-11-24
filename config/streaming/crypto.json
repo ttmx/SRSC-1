@@ -1,8 +1,0 @@
-{
-  "algorithm":"AES",
-  "symmetricSuite":"AES/CBC/PKCS5Padding",
-  "symPassword":"passbuesegura",
-  "ivHex":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-  "hmacSuite":"HmacSHA512",
-  "hmacKeyHex":"5078423FBCABC56B44697DF0E00460A3BBEA1D7E5AF251675C057255790AD668"
-}
