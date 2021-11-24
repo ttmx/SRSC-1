@@ -37,14 +37,17 @@ class EncapsulatedPacketHash {
         this.data = data
         this.from = address
         this.port = port
-        CryptoTools.checkHash(shaDig, dataBytes, shaBytes)
+
+        if (msgType !in arrayOf(1.toByte(), 2.toByte()))
+            CryptoTools.checkHash(shaDig, dataBytes, shaBytes)
     }
 
     constructor(packet: DatagramPacket) {
         this.data = packet.data
         this.from = packet.address
         this.port = packet.port
-        CryptoTools.checkHash(shaDig, dataBytes, shaBytes)
+        if (msgType !in arrayOf(1.toByte(), 2.toByte()))
+            CryptoTools.checkHash(shaDig, dataBytes, shaBytes)
     }
 
     constructor(raw: ByteArray, len: Int, msgType: Byte) {
@@ -67,7 +70,7 @@ fun main(){
     val b = EncapsulatedPacketHash.shaDig.digest(e.dataBytes)
     println(String(a))
     println(String(b))
-    println(!a.equals(b))
+    println(a.contentEquals(b))
 
     CryptoTools.checkHash(EncapsulatedPacketHash.shaDig, e.dataBytes, e.shaBytes)
 }

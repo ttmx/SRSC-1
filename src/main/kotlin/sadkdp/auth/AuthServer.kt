@@ -7,7 +7,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import movies.MoviesRepository
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
-import secureDatagrams.EncapsulatedPacket
+import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.Settings
 import users.UsersRepository
 import java.net.DatagramPacket
@@ -30,7 +30,7 @@ class AuthServer(
     private val random = SecureRandom()
 
     fun processMessage(p: DatagramPacket) {
-        val ep = EncapsulatedPacket(p)
+        val ep = EncapsulatedPacketHash(p)
         val hello = 1
         val authentication = 3
         val payment = 5
@@ -55,11 +55,11 @@ class AuthServer(
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
         //TODO version needs to be parameterized hmac also broken
-        val ep = EncapsulatedPacket(toSend, toSend.size, msgType)
+        val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
-    private fun decodeHello(ep: EncapsulatedPacket): HelloDto {
+    private fun decodeHello(ep: EncapsulatedPacketHash): HelloDto {
         return ProtoBuf.decodeFromByteArray(ep.dataBytes)
     }
 
@@ -75,7 +75,7 @@ class AuthServer(
         sendPacket(AuthenticationRequestDto(n1, salt, counter), 2, socketAddress)
     }
 
-    private fun decodeAuthentication(ep: EncapsulatedPacket): AuthenticationDto {
+    private fun decodeAuthentication(ep: EncapsulatedPacketHash): AuthenticationDto {
         val cDec = Cipher.getInstance("DESede/CBC/PKCS7Padding", "BC")
         val pbeSpec = PBEKeySpec("password".toCharArray(), "salt".toByteArray(), 123) //TODO
         val keyFact = SecretKeyFactory.getInstance("PBEWithSHAAnd3KeyTripleDES")
@@ -103,7 +103,7 @@ class AuthServer(
         sendPacket(PaymentRequestDto(payload, signature), 4, socketAddress)
     }
 
-    private fun decodePayment(ep: EncapsulatedPacket): PaymentDto {
+    private fun decodePayment(ep: EncapsulatedPacketHash): PaymentDto {
         return ProtoBuf.decodeFromByteArray(ep.dataBytes)
     }
 

@@ -8,7 +8,7 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
-import secureDatagrams.EncapsulatedPacket
+import secureDatagrams.EncapsulatedPacketHash
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
@@ -40,7 +40,7 @@ class AuthClient(
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
         //TODO version needs to be parameterized hmac also broken
-        val ep = EncapsulatedPacket(toSend, toSend.size, msgType)
+        val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
@@ -56,7 +56,7 @@ class AuthClient(
 
     private fun sendHello(userId: String, proxyBoxId: String) {
         val helloDto = ProtoBuf.encodeToByteArray(HelloDto(userId, proxyBoxId))
-        val packet = ByteBuffer.allocate(EncapsulatedPacket.HEADER_SIZE + helloDto.size)
+        val packet = ByteBuffer.allocate(EncapsulatedPacketHash.HEADER_SIZE + helloDto.size)
             .put(CryptoTools.makeHeader(0b010/*TODO*/, 1, helloDto.size.toShort()))
             .put(helloDto)
             .array()
@@ -86,7 +86,7 @@ class AuthClient(
         val out = cEnc.doFinal(
             ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, random.nextInt(), movieId))
         )
-        val ep = EncapsulatedPacket(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
+        val ep = EncapsulatedPacketHash(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
 
@@ -118,11 +118,11 @@ class AuthClient(
         return Pair(payloadContent, streamingPayload)
     }
 
-    private fun receivePacket(): EncapsulatedPacket {
+    private fun receivePacket(): EncapsulatedPacketHash {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
         inSocket.receive(inPacket)
-        val data = EncapsulatedPacket(inPacket) //TODO EncapsulatedPacket assumes hmac (version check missing)
+        val data = EncapsulatedPacketHash(inPacket) //TODO EncapsulatedPacket assumes hmac (version check missing)
         return when (data.msgType.toInt()) {
             2, 4, 6 -> data
             10 -> throw RuntimeException(/*TODO*/)
