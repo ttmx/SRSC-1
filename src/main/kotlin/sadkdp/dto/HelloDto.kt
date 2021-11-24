@@ -1,4 +1,4 @@
-package sadkdp
+package sadkdp.dto
 
 import kotlinx.serialization.Serializable
 

@@ -1,4 +1,4 @@
-package sadkdp
+package sadkdp.dto
 
 import coins.Coin
 import kotlinx.serialization.Serializable

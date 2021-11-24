@@ -1,11 +1,11 @@
-package signal
+package sadkdp.auth
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import movies.MoviesRepository
-import sadkdp.*
+import sadkdp.dto.*
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
 import secureDatagrams.Settings
@@ -28,30 +28,6 @@ class AuthServer(
 ) {
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
-
-    companion object {
-        private inline fun <reified T> sign(privateKey: PrivateKey, dto: T): ByteArray {
-            val privateSignature = Signature.getInstance("SHA512withECDSA", "BC")
-            privateSignature.initSign(privateKey)
-            privateSignature.update(ProtoBuf.encodeToByteArray(dto))
-            return privateSignature.sign()
-        }
-
-        private fun verify(signature1: ByteArray, payload: PaymentDto.Payload, publicKey: PublicKey) {
-            val signature = Signature.getInstance("SHA512withECDSA", "BC")
-            signature.initVerify(publicKey)
-            signature.update(signature1)
-            if (!signature.verify(ProtoBuf.encodeToByteArray(payload))) {
-                throw RuntimeException(/*TODO*/)
-            }
-        }
-
-        private inline fun <reified T> encrypt(publicKey: PublicKey, dto: T): ByteArray {
-            val cipher = Cipher.getInstance("ECIES", "BC")
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey)
-            return cipher.doFinal(ProtoBuf.encodeToByteArray(dto))
-        }
-    }
 
     fun processMessage(p: DatagramPacket) {
         val ep = EncapsulatedPacket(p)
@@ -122,7 +98,7 @@ class AuthServer(
         val n3 = CryptoTools.rand(256)
         val payload = PaymentRequestDto.Payload(n2 + 1, n3, 1)
 
-        val signature = sign(privateKey(), payload)
+        val signature = AuthHelper.sign(payload, privateKey())
 
         sendPacket(PaymentRequestDto(payload, signature), 4, socketAddress)
     }
@@ -133,17 +109,17 @@ class AuthServer(
 
     private fun sendTicketCredentials(payment: PaymentDto, socketAddress: SocketAddress) {
         val (payload, signature1) = payment
-        verify(signature1, payload, publicKey("proxy"))
+        AuthHelper.verify(payload, signature1, publicKey("proxy"))
 
         val (n3_, n4, coin) = payload
 
         val payloadContent = TicketCredentialsDto.Payload.Content("ip", 12, "movie", settings, n4 + 1)
 
-        val proxyPayload = encrypt(publicKey("proxy"), payloadContent)
-        val streamingPayload = encrypt(publicKey("streaming"), payloadContent.copy(nc = random.nextInt()))
+        val proxyPayload = AuthHelper.encrypt(payloadContent, publicKey("proxy"))
+        val streamingPayload = AuthHelper.encrypt(payloadContent.copy(nc = random.nextInt()), publicKey("streaming"))
         val payload1 = TicketCredentialsDto.Payload(proxyPayload, streamingPayload)
 
-        val signature = sign(privateKey(), payload1)
+        val signature = AuthHelper.sign(payload1, privateKey())
 
         sendPacket(TicketCredentialsDto(payload1, signature), 6, socketAddress)
     }

@@ -1,11 +1,12 @@
-package proxy
+package sadkdp.auth
 
 import coins.Coin
 import coins.CoinsRepository
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
-import sadkdp.*
+import sadkdp.dto.*
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
 import users.UsersRepository
@@ -13,10 +14,7 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.SecureRandom
-import java.security.Signature
+import java.security.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
@@ -24,11 +22,31 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 
-class Authentication(private val inSocket: DatagramSocket, private val outSocketAddress: SocketAddress) {
+@ExperimentalSerializationApi
+class AuthClient(
+    private val inSocket: DatagramSocket,
+    private val outSocketAddress: SocketAddress,
+    private val keyStore: KeyStore
+) {
 
     private val outSocket = DatagramSocket()
     private val users = UsersRepository("users.json")
     private val coins = CoinsRepository()
+
+    private fun publicKey(alias: String): PublicKey {
+        return keyStore.getCertificate(alias).publicKey
+    }
+
+    private fun privateKey(): PrivateKey {
+        return keyStore.getKey("proxy", "password".toCharArray()) as PrivateKey
+    }
+
+    private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
+        val toSend = ProtoBuf.encodeToByteArray(dto)
+        //TODO version needs to be parameterized hmac also broken
+        val ep = EncapsulatedPacket(toSend, toSend.size, msgType)
+        outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
+    }
 
     fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String) {
         val authUser = users.authUser(userId, password)
@@ -86,64 +104,29 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
     }
 
     private fun receivePaymentRequest(): PaymentRequestDto.Payload {
-        fun publicKey(): PublicKey {
-            TODO()
-        }
-
         val data = receivePacket()
         val (payload, signature1) = ProtoBuf.decodeFromByteArray<PaymentRequestDto>(data.dataBytes)
-        val signature = Signature.getInstance("SHA512withECDSA", "BC")
-        signature.initVerify(publicKey())
-        signature.update(signature1)
-        if (!signature.verify(ProtoBuf.encodeToByteArray(payload))) {
-            throw RuntimeException(/*TODO*/)
-        }
+        AuthHelper.verify(payload, signature1, publicKey("signal"))
         return payload
     }
 
     private fun sendPayment(paymentRequest: PaymentRequestDto.Payload) {
-        fun privateKey(): PrivateKey {
-            TODO()
-        }
-
         fun getCoin(): Coin {
             TODO("check price")
         }
         val (n2_, n3, price) = paymentRequest
         val payment = PaymentDto.Payload(n3 + 1, SecureRandom().nextInt(), getCoin())
-        val encoded = ProtoBuf.encodeToByteArray(payment)
-        val privateSignature = Signature.getInstance("SHA512withECDSA", "BC")
-        privateSignature.initSign(privateKey())
-        privateSignature.update(encoded)
-        val signature = privateSignature.sign()
+        val signature = AuthHelper.sign(payment, privateKey())
 
-        val out = ProtoBuf.encodeToByteArray(PaymentDto(payment, signature))
-        val ep = EncapsulatedPacket(out, out.size, 5) //TODO version needs to be parameterized hmac also broken
-        outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+        sendPacket(PaymentDto(payment, signature), 5, outSocketAddress)
     }
 
     private fun receiveTicketCredentials(): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
-        fun publicKey(): PublicKey {
-            TODO()
-        }
-
-        fun privateKey(): PrivateKey {
-            TODO()
-        }
-
         val data = receivePacket()
         val (payload, signature1) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
-        val signature = Signature.getInstance("SHA512withECDSA", "BC")
-        signature.initVerify(publicKey())
-        signature.update(signature1)
-        if (!signature.verify(ProtoBuf.encodeToByteArray(payload))) {
-            throw RuntimeException(/*TODO*/)
-        }
+        AuthHelper.verify(payload, signature1, publicKey("signal"))
         val (proxyPayload, streamingPayload) = payload
-        val cipher = Cipher.getInstance("ECIES", "BC")
-        cipher.init(Cipher.DECRYPT_MODE, privateKey())
-        val payloadContent =
-            ProtoBuf.decodeFromByteArray<TicketCredentialsDto.Payload.Content>(cipher.doFinal(proxyPayload))
+        val payloadContent = AuthHelper.decrypt<TicketCredentialsDto.Payload.Content>(proxyPayload, privateKey())
         return Pair(payloadContent, streamingPayload)
     }
 

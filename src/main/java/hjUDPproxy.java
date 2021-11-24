@@ -15,7 +15,8 @@
  *       Both configurable in the file config.properties
  */
 
-import proxy.Authentication;
+import org.jetbrains.annotations.NotNull;
+import sadkdp.auth.AuthClient;
 import secureDatagrams.SecureDatagramSocket;
 
 import java.io.FileInputStream;
@@ -25,6 +26,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.security.KeyStore;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Properties;
@@ -53,15 +55,14 @@ class hjUDPproxy {
                 .map(hjUDPproxy::parseSocketAddress)
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SecureDatagramSocket("proxy",inSocketAddress);
+        DatagramSocket inSocket = new SecureDatagramSocket("proxy", inSocketAddress);
 
         System.out.print("Starting proxy server");
-        proxy.Authentication auth = new Authentication(inSocket, parseSocketAddress(signal));
+        AuthClient auth = new AuthClient(inSocket, parseSocketAddress(signal), getKeyStoreFromFile("config/proxy/proxy.p12", "PKCS12", "password"));
         auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
 
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
-
 
 
         while (true) {
@@ -80,5 +81,13 @@ class hjUDPproxy {
         String host = split[0];
         int port = Integer.parseInt(split[1]);
         return new InetSocketAddress(host, port);
+    }
+
+    @NotNull
+    private static KeyStore getKeyStoreFromFile(String type, String fileName, String password) throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(type);
+        FileInputStream stream = new FileInputStream(fileName);
+        keyStore.load(stream, password.toCharArray());
+        return keyStore;
     }
 }
