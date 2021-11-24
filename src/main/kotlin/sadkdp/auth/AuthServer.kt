@@ -34,7 +34,7 @@ class AuthServer(
         val hello = 1
         val authentication = 3
         val payment = 5
-        val socketAddress = InetSocketAddress(p.address, p.port)
+        val socketAddress = InetSocketAddress(p.address, 9999)
         when (ep.msgType.toInt()) {
             hello -> sendAuthenticationRequest(decodeHello(ep), socketAddress)
             authentication -> sendPaymentRequest(decodeAuthentication(ep), socketAddress)
@@ -69,8 +69,8 @@ class AuthServer(
         if (users.getUser(userId) == null) {
             throw RuntimeException() //TODO send error
         }
-        val salt = CryptoTools.salt(4) //Todo save this???
-        val counter = random.nextInt(10) //TODO pbe difficulty
+        val salt = "salt"//CryptoTools.salt(4) //Todo save this???
+        val counter = 123//random.nextInt(10) //TODO pbe difficulty
         val n1 = random.nextInt()
         sendPacket(AuthenticationRequestDto(n1, salt, counter), 2, socketAddress)
     }

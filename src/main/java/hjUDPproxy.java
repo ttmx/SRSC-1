@@ -15,8 +15,11 @@
  *       Both configurable in the file config.properties
  */
 
+import coins.CoinsRepository;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import sadkdp.auth.AuthClient;
+import sadkdp.dto.TicketCredentialsDto;
 import secureDatagrams.SecureDatagramSocket;
 
 import java.io.FileInputStream;
@@ -37,7 +40,7 @@ class hjUDPproxy {
     public static void main(String[] args) throws Exception {
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream("config.properties");
+            inputStream = new FileInputStream("config/proxy/config.properties");
         } catch (FileNotFoundException e) {
             System.err.println("Configuration file not found!");
             System.exit(1);
@@ -55,12 +58,18 @@ class hjUDPproxy {
                 .map(hjUDPproxy::parseSocketAddress)
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SecureDatagramSocket("proxy", inSocketAddress);
+        DatagramSocket inSocket = new DatagramSocket(inSocketAddress);
 
         System.out.print("Starting proxy server");
-        AuthClient auth = new AuthClient(inSocket, parseSocketAddress(signal), getKeyStoreFromFile("config/proxy/proxy.p12", "PKCS12", "password"));
-        auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
-
+        AuthClient auth = new AuthClient(
+                new CoinsRepository(),
+                inSocket,
+                parseSocketAddress(signal),
+                getKeyStoreFromFile("PKCS12", "config/proxy/proxy.p12", "password")
+        );
+        Pair<TicketCredentialsDto.Payload.Content, byte[]> streamInfo = auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
+        SocketAddress inSocketAddress2 = new InetSocketAddress(streamInfo.component1().getIp(), streamInfo.component1().getPort());
+        SecureDatagramSocket secureDatagramSocket = new SecureDatagramSocket(streamInfo.component1().getSettings(), inSocketAddress2);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 

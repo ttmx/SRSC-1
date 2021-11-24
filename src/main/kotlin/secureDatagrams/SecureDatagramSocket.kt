@@ -21,16 +21,20 @@ class SecureDatagramSocket : DatagramSocket {
     private lateinit var sett: Settings
 
     constructor(serverType: String, a: SocketAddress) : super(a) {
-        init(serverType)
+        init(Settings.getSettingsFromFile(serverType))
     }
 
     constructor(serverType: String) : super() {
-        init(serverType)
+        init(Settings.getSettingsFromFile(serverType))
     }
 
-    fun init(serverType: String) {
+    constructor(settings: Settings, a: SocketAddress) : super(a) {
+        init(settings)
+    }
+
+    fun init(settings: Settings) {
         //TODO change this up
-        sett = Settings.getSettingsFromFile(serverType)
+        sett = settings
         val kg = KeyGenerator.getInstance(sett.algorithm)
         kg.init(SecureRandom(sett.symPassword.toByteArray()))
         key = kg.generateKey()

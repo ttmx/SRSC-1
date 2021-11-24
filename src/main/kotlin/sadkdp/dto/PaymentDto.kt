@@ -3,6 +3,7 @@ package sadkdp.dto
 import coins.Coin
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class PaymentDto(val payload: Payload, val signature: ByteArray) {
     @Serializable
     data class Payload(val n3_: Int, val n4: Int, val coin: Coin)

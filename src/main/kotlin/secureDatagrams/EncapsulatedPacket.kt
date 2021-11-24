@@ -51,7 +51,7 @@ class EncapsulatedPacket {
         this.data = packet.data
         this.from = packet.address
         this.port = packet.port
-        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
+//        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
     }
 
     constructor(raw: ByteArray, len: Int, msgType: Byte) {

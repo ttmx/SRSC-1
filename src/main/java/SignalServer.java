@@ -45,8 +45,8 @@ public class SignalServer {
     private static AuthServer getAuthServer() throws Exception {
         UsersRepository users = new UsersRepository("config/signal/users.json");
         MoviesRepository movies = new MoviesRepository("config/signal/movies.json");
-        Settings settings = Settings.Companion.getSettingsFromFile("config/signal/crypto.json");
-        KeyStore keyStore = getKeyStoreFromFile("config/signal/signal.p12", "PKCS12", "password");
+        Settings settings = Settings.Companion.getSettingsFromFile("signal");
+        KeyStore keyStore = getKeyStoreFromFile("PKCS12", "config/signal/signal.p12", "password");
         return new AuthServer(users, movies, settings, keyStore);
     }
 

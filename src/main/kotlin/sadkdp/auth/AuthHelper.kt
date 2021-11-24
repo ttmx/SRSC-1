@@ -6,6 +6,7 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.SecureRandom
 import java.security.Signature
 import javax.crypto.Cipher
 
@@ -14,7 +15,7 @@ class AuthHelper {
     companion object {
         inline fun <reified T> sign(dto: T, privateKey: PrivateKey): ByteArray {
             val signer = Signature.getInstance("SHA512withECDSA", "BC")
-            signer.initSign(privateKey)
+            signer.initSign(privateKey, SecureRandom())
             signer.update(ProtoBuf.encodeToByteArray(dto))
             return signer.sign()
         }
@@ -22,8 +23,8 @@ class AuthHelper {
         inline fun <reified T> verify(dto: T, signature1: ByteArray, publicKey: PublicKey) {
             val verifier = Signature.getInstance("SHA512withECDSA", "BC")
             verifier.initVerify(publicKey)
-            verifier.update(signature1)
-            if (!verifier.verify(ProtoBuf.encodeToByteArray(dto))) {
+            verifier.update(ProtoBuf.encodeToByteArray(dto))
+            if (!verifier.verify(signature1)) {
                 throw RuntimeException(/*TODO*/)
             }
         }

@@ -9,7 +9,6 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacket
-import users.UsersRepository
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
@@ -17,21 +16,18 @@ import java.nio.ByteBuffer
 import java.security.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
-import javax.crypto.spec.SecretKeySpec
 
 
 @ExperimentalSerializationApi
 class AuthClient(
+    private val coins: CoinsRepository,
     private val inSocket: DatagramSocket,
     private val outSocketAddress: SocketAddress,
     private val keyStore: KeyStore
 ) {
-
     private val outSocket = DatagramSocket()
-    private val users = UsersRepository("users.json")
-    private val coins = CoinsRepository()
+    private val random = SecureRandom()
 
     private fun publicKey(alias: String): PublicKey {
         return keyStore.getCertificate(alias).publicKey
@@ -48,21 +44,20 @@ class AuthClient(
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
-    fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String) {
-        val authUser = users.authUser(userId, password)
+    fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
         val coin = coins.getCoin(coinId)
         sendHello(userId, proxyBoxId)
         val authenticationRequest = receiveAuthenticationRequest()
-        sendAuthentication(authenticationRequest, authUser.password, movieId)
+        sendAuthentication(authenticationRequest, password, movieId)
         val paymentRequest = receivePaymentRequest()
         sendPayment(paymentRequest)
-        receiveTicketCredentials()
+        return receiveTicketCredentials()
     }
 
     private fun sendHello(userId: String, proxyBoxId: String) {
         val helloDto = ProtoBuf.encodeToByteArray(HelloDto(userId, proxyBoxId))
         val packet = ByteBuffer.allocate(EncapsulatedPacket.HEADER_SIZE + helloDto.size)
-            .put(CryptoTools.makeHeader(0b010/*TODO*/, 0b001, helloDto.size.toShort()))
+            .put(CryptoTools.makeHeader(0b010/*TODO*/, 1, helloDto.size.toShort()))
             .put(helloDto)
             .array()
         outSocket.send(DatagramPacket(packet, packet.size, outSocketAddress))
@@ -83,21 +78,13 @@ class AuthClient(
         val cEnc = Cipher.getInstance("DESede/CBC/PKCS7Padding", "BC")
 
         val pbeSpec = PBEKeySpec(password.toCharArray(), salt.toByteArray(), counter)
-        val keyBytes = SecretKeyFactory.getInstance("PBEWithSHAAnd3KeyTripleDES")
+        val secretKey = SecretKeyFactory.getInstance("PBEWithSHAAnd3KeyTripleDES")
             .generateSecret(pbeSpec)
-            .encoded
 
-        val ivBytes = ByteArray(cEnc.blockSize)
-        SecureRandom().nextBytes(ivBytes)
-
-        cEnc.init(
-            Cipher.ENCRYPT_MODE,
-            SecretKeySpec(keyBytes, "DESede"),
-            IvParameterSpec(ivBytes)
-        )
+        cEnc.init(Cipher.ENCRYPT_MODE, secretKey)
 
         val out = cEnc.doFinal(
-            ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, SecureRandom().nextInt(), movieId))
+            ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, random.nextInt(), movieId))
         )
         val ep = EncapsulatedPacket(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
@@ -105,17 +92,18 @@ class AuthClient(
 
     private fun receivePaymentRequest(): PaymentRequestDto.Payload {
         val data = receivePacket()
-        val (payload, signature1) = ProtoBuf.decodeFromByteArray<PaymentRequestDto>(data.dataBytes)
-        AuthHelper.verify(payload, signature1, publicKey("signal"))
+        val (payload, signature) = ProtoBuf.decodeFromByteArray<PaymentRequestDto>(data.dataBytes)
+        AuthHelper.verify(payload, signature, publicKey("signal"))
         return payload
     }
 
     private fun sendPayment(paymentRequest: PaymentRequestDto.Payload) {
         fun getCoin(): Coin {
-            TODO("check price")
+            //TODO("check price")
+            return coins.getCoin("coinId")
         }
         val (n2_, n3, price) = paymentRequest
-        val payment = PaymentDto.Payload(n3 + 1, SecureRandom().nextInt(), getCoin())
+        val payment = PaymentDto.Payload(n3 + 1, random.nextInt(), getCoin())
         val signature = AuthHelper.sign(payment, privateKey())
 
         sendPacket(PaymentDto(payment, signature), 5, outSocketAddress)
@@ -123,8 +111,8 @@ class AuthClient(
 
     private fun receiveTicketCredentials(): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
         val data = receivePacket()
-        val (payload, signature1) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
-        AuthHelper.verify(payload, signature1, publicKey("signal"))
+        val (payload, signature) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
+        AuthHelper.verify(payload, signature, publicKey("signal"))
         val (proxyPayload, streamingPayload) = payload
         val payloadContent = AuthHelper.decrypt<TicketCredentialsDto.Payload.Content>(proxyPayload, privateKey())
         return Pair(payloadContent, streamingPayload)
