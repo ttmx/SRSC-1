@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec
 class Authentication(private val inSocket: DatagramSocket, private val outSocketAddress: SocketAddress) {
 
     private val outSocket = DatagramSocket()
-    private val users = UsersRepository()
+    private val users = UsersRepository("users.json")
     private val coins = CoinsRepository()
 
     fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String) {

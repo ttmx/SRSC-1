@@ -1,4 +1,6 @@
+import org.graalvm.compiler.lir.LIRInstruction;
 import secureDatagrams.SignalHelper;
+import users.UsersRepository;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,7 +27,8 @@ public class SignalServer {
         String proxyboxid = properties.getProperty("proxyboxid");
         int port = Integer.parseInt(properties.getProperty("port"));
         DatagramSocket s = new DatagramSocket(port);
-        SignalHelper ss = new SignalHelper(userid, proxyboxid, port, s);
+        UsersRepository ur = new UsersRepository("users.json");
+        SignalHelper ss = new SignalHelper(ur, proxyboxid, port, s);
         while (true) {
             byte[] buff = new byte[4096];
             DatagramPacket p = new DatagramPacket(buff, buff.length);

@@ -53,7 +53,7 @@ class hjUDPproxy {
                 .map(hjUDPproxy::parseSocketAddress)
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SecureDatagramSocket(inSocketAddress);
+        DatagramSocket inSocket = new SecureDatagramSocket("proxy",inSocketAddress);
 
         System.out.print("Starting proxy server");
         proxy.Authentication auth = new Authentication(inSocket, parseSocketAddress(signal));

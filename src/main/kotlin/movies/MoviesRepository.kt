@@ -1,4 +1,4 @@
-package users
+package movies
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -6,8 +6,8 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import kotlin.system.exitProcess
 
-class UsersRepository(fileName:String) {
-    val users = HashMap<String, User>()
+class MoviesRepository(fileName:String) {
+    val movies = HashMap<String, Movie>()
 
     init {
         val inputString: String = try {
@@ -16,20 +16,11 @@ class UsersRepository(fileName:String) {
             System.err.println("Configuration file not found!")
             exitProcess(1)
         }
-        val userData = Json.decodeFromString<List<User>>(inputString)
+        val userData = Json.decodeFromString<List<Movie>>(inputString)
 
         for (u in userData) {
-            users[u.userId] = u
+            movies[u.filmName] = u
         }
     }
 
-    fun authUser(userId: String, password: String): User {
-
-        val user = users[userId] ?: throw RuntimeException("User not found!")
-        if (user.password == password) {
-            return user
-        } else {
-            throw RuntimeException("Wrong password!")
-        }
-    }
 }

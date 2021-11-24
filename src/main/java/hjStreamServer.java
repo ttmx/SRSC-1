@@ -30,7 +30,7 @@ class hjStreamServer {
         DataInputStream g = new DataInputStream(new FileInputStream(args[0]));
         byte[] buff = new byte[4096];
 
-        DatagramSocket s = new SecureDatagramSocket();
+        DatagramSocket s = new SecureDatagramSocket("stream");
         InetSocketAddress addr = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
         DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
         long t0 = System.nanoTime(); // Ref. time

@@ -14,14 +14,22 @@ import javax.crypto.spec.SecretKeySpec
 
 class SecureDatagramSocket : DatagramSocket {
 
-    private val encryptCipher: Cipher
-    private val decryptCipher: Cipher
-    private val key: SecretKey
-    private val hMac: Mac
-    private val sett:Settings = Settings.getSettingsFromFile("signal")
+    private lateinit var encryptCipher: Cipher
+    private lateinit var decryptCipher: Cipher
+    private lateinit var key: SecretKey
+    private lateinit var hMac: Mac
+    private lateinit var sett:Settings
 
-    init {
+    constructor(serverType:String,a: SocketAddress) : super(a){
+        init(serverType)
+    }
+
+    constructor(serverType:String) : super(){
+        init(serverType)
+    }
+    fun init(serverType: String){
         //TODO change this up
+        sett = Settings.getSettingsFromFile(serverType)
         val kg = KeyGenerator.getInstance(sett.algorithm)
         kg.init(SecureRandom(sett.symPassword.toByteArray()))
         key = kg.generateKey()
@@ -38,11 +46,9 @@ class SecureDatagramSocket : DatagramSocket {
 
         hMac = Mac.getInstance(sett.hmacSuite)
         hMac.init(SecretKeySpec(sett.hmacKey, sett.hmacSuite))
+
     }
 
-    constructor(a: SocketAddress) : super(a)
-
-    constructor() : super()
 
     /**
      * Unlike its parent implementation, the [DatagramPacket.buf] is replaced by a new one

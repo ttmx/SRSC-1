@@ -28,7 +28,7 @@ class EncapsulatedPacket {
         get() = ByteBuffer.wrap(this.data).getShort(1)
 
     val msgType: Byte
-        get() = this.data[0] and 0x01
+        get() = this.data[0] and 0x0F
 
     val version: Byte
         get() = (this.data[0].toInt() ushr 4).toByte()
