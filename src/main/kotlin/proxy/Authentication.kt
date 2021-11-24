@@ -122,7 +122,7 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
 
-    private fun receiveTicketCredentials() {
+    private fun receiveTicketCredentials(): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
         fun publicKey(): PublicKey {
             TODO()
         }
@@ -142,8 +142,9 @@ class Authentication(private val inSocket: DatagramSocket, private val outSocket
         val (proxyPayload, streamingPayload) = payload
         val cipher = Cipher.getInstance("ECIES", "BC")
         cipher.init(Cipher.DECRYPT_MODE, privateKey())
-        val cipherText = cipher.doFinal(proxyPayload)
-        TODO("deserialize")
+        val payloadContent =
+            ProtoBuf.decodeFromByteArray<TicketCredentialsDto.Payload.Content>(cipher.doFinal(proxyPayload))
+        return Pair(payloadContent, streamingPayload)
     }
 
     private fun receivePacket(): EncapsulatedPacket {

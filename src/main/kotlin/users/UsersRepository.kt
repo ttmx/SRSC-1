@@ -6,7 +6,7 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import kotlin.system.exitProcess
 
-class UsersRepository(fileName:String) {
+class UsersRepository(fileName: String) {
     val users = HashMap<String, User>()
 
     init {
@@ -21,6 +21,10 @@ class UsersRepository(fileName:String) {
         for (u in userData) {
             users[u.userId] = u
         }
+    }
+
+    fun getUser(userId: String): User? {
+        return users[userId]
     }
 
     fun authUser(userId: String, password: String): User {

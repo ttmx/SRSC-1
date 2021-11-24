@@ -1,11 +1,18 @@
 package sadkdp
 
 import kotlinx.serialization.Serializable
+import secureDatagrams.Settings
 
 @Serializable
 data class TicketCredentialsDto(val payload: Payload, val signature: ByteArray) {
     @Serializable
     data class Payload(val proxyPayload: ByteArray, val streamingPayload: ByteArray) {
+        @Serializable
+        data class Content(
+            val ip: String, val port: Int, val movieId: String,
+            val settings: Settings, val nc: Int
+        )
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false

@@ -18,16 +18,17 @@ class SecureDatagramSocket : DatagramSocket {
     private lateinit var decryptCipher: Cipher
     private lateinit var key: SecretKey
     private lateinit var hMac: Mac
-    private lateinit var sett:Settings
+    private lateinit var sett: Settings
 
-    constructor(serverType:String,a: SocketAddress) : super(a){
+    constructor(serverType: String, a: SocketAddress) : super(a) {
         init(serverType)
     }
 
-    constructor(serverType:String) : super(){
+    constructor(serverType: String) : super() {
         init(serverType)
     }
-    fun init(serverType: String){
+
+    fun init(serverType: String) {
         //TODO change this up
         sett = Settings.getSettingsFromFile(serverType)
         val kg = KeyGenerator.getInstance(sett.algorithm)

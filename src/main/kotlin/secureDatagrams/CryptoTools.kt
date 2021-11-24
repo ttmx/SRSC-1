@@ -1,12 +1,8 @@
 package secureDatagrams
 
 import java.nio.ByteBuffer
-import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.security.Signature
-import java.security.spec.EncodedKeySpec
-import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.IntStream
@@ -54,6 +50,7 @@ class CryptoTools {
                 .mapToObj { b: Int -> if (get(b)) "1" else "0" }
                 .collect(Collectors.joining())
         }
+
         private val RANDOM: Random = SecureRandom()
         fun salt(length: Int): String {
             val sb = StringBuilder(length)
@@ -70,7 +67,7 @@ class CryptoTools {
             return sb.toString()
         }
 
-        fun rand(b:Int): Int {
+        fun rand(b: Int): Int {
             return RANDOM.nextInt(b)
         }
 

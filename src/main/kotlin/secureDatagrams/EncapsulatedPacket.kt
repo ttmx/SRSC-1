@@ -10,7 +10,7 @@ import kotlin.properties.Delegates
 
 class EncapsulatedPacket {
     companion object {
-        private val sett :Settings = Settings.getSettingsFromFile("signal")
+        private val sett: Settings = Settings.getSettingsFromFile("signal")
 
         private val hMac: Mac = Mac.getInstance(sett.hmacSuite)
         const val HEADER_SIZE = 1 + 2

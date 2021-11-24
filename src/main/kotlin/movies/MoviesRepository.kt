@@ -6,7 +6,7 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import kotlin.system.exitProcess
 
-class MoviesRepository(fileName:String) {
+class MoviesRepository(fileName: String) {
     val movies = HashMap<String, Movie>()
 
     init {

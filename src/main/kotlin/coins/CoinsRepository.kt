@@ -1,8 +1,6 @@
 package coins
 
 import kotlinx.datetime.LocalDate
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
 
 class CoinsRepository {
     private val coins = HashMap<String, Coin>()
