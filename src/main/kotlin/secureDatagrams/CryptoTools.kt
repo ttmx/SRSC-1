@@ -71,5 +71,11 @@ class CryptoTools {
             return RANDOM.nextInt(b)
         }
 
+        fun checkHash(shaDig: MessageDigest, dataBytes: ByteArray, shaBytes: ByteArray) {
+            if (!shaDig.digest(dataBytes).contentEquals(shaBytes)){
+                throw IllegalStateException()
+            }
+        }
+
     }
 }
