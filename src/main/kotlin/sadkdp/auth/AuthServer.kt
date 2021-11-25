@@ -10,14 +10,20 @@ import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.Settings
 import users.UsersRepository
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.*
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import kotlin.system.exitProcess
 
 @ExperimentalSerializationApi
 class AuthServer(
@@ -29,16 +35,19 @@ class AuthServer(
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
 
+    private var lastN1:Int? = null
+    private var lastN3:Int? = null
+
     fun processMessage(p: DatagramPacket) {
         val ep = EncapsulatedPacketHash(p)
         val hello = 1
         val authentication = 3
         val payment = 5
-        val socketAddress = InetSocketAddress(p.address, 9999)
+        val socketAddress = InetSocketAddress(p.address, getProxyPort())
         when (ep.msgType.toInt()) {
             hello -> sendAuthenticationRequest(decodeHello(ep), socketAddress)
             authentication -> sendPaymentRequest(decodeAuthentication(ep), socketAddress)
-            payment -> sendTicketCredentials(decodePayment(ep), socketAddress)
+            payment -> sendTicketCredentials(decodePayment(ep), socketAddress,ep)
             9 -> throw RuntimeException(/*TODO*/)
             else -> throw RuntimeException(/*TODO*/)
         }
@@ -72,6 +81,7 @@ class AuthServer(
         val salt = "salt"//CryptoTools.salt(4) //Todo save this???
         val counter = 123//random.nextInt(10) //TODO pbe difficulty
         val n1 = random.nextInt()
+        lastN1 = n1
         sendPacket(AuthenticationRequestDto(n1, salt, counter), 2, socketAddress)
     }
 
@@ -90,13 +100,14 @@ class AuthServer(
         val (n1_, n2, movieId) = authentication
 
         //Todo currently single user and single proxyboxid
-        if (/* TODO nonce != previous nonce +1*/false) {
-            return
+        if (n1_ -1 != lastN1) {
+            throw RuntimeException("$n1_ -1 != $lastN1") //TODO send error
         }
         //Todo dynamic price
 
         val n3 = CryptoTools.rand(256)
         val payload = PaymentRequestDto.Payload(n2 + 1, n3, 1)
+        lastN3 = n3
 
         val signature = AuthHelper.sign(payload, privateKey())
 
@@ -107,13 +118,17 @@ class AuthServer(
         return ProtoBuf.decodeFromByteArray(ep.dataBytes)
     }
 
-    private fun sendTicketCredentials(payment: PaymentDto, socketAddress: SocketAddress) {
+    private fun sendTicketCredentials(payment: PaymentDto, socketAddress: SocketAddress, ep: EncapsulatedPacketHash) {
         val (payload, signature1) = payment
         AuthHelper.verify(payload, signature1, publicKey("proxy"))
 
         val (n3_, n4, coin) = payload
 
-        val payloadContent = TicketCredentialsDto.Payload.Content("ip", 12, "movie", settings, n4 + 1)
+        if(n3_-1!= lastN3){
+            throw RuntimeException("$n3_ -1 != $lastN3") //TODO send error
+        }
+
+        val payloadContent = TicketCredentialsDto.Payload.Content(ep.from.hostAddress, getProxyPort(), "movie", settings, n4 + 1)
 
         val proxyPayload = AuthHelper.encrypt(payloadContent, publicKey("proxy"))
         val streamingPayload = AuthHelper.encrypt(payloadContent.copy(nc = random.nextInt()), publicKey("streaming"))
@@ -122,5 +137,13 @@ class AuthServer(
         val signature = AuthHelper.sign(payload1, privateKey())
 
         sendPacket(TicketCredentialsDto(payload1, signature), 6, socketAddress)
+    }
+
+    private fun getProxyPort(): Int {
+        val inputStream: InputStream
+            inputStream = FileInputStream("config/signal/signal.properties")
+        val properties = Properties()
+        properties.load(inputStream)
+        return properties.getProperty("proxyport").toInt()
     }
 }

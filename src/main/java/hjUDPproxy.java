@@ -69,7 +69,7 @@ class hjUDPproxy {
         );
         Pair<TicketCredentialsDto.Payload.Content, byte[]> streamInfo = auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
         SocketAddress inSocketAddress2 = new InetSocketAddress(streamInfo.component1().getIp(), streamInfo.component1().getPort());
-        SecureDatagramSocket secureDatagramSocket = new SecureDatagramSocket(streamInfo.component1().getSettings(), inSocketAddress2);
+//        SecureDatagramSocket secureDatagramSocket = new SecureDatagramSocket(streamInfo.component1().getSettings(), inSocketAddress2);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 
