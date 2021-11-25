@@ -1,10 +1,12 @@
 [
   {
     "filmName": "cars",
-    "fileName": "cars.dat"
+    "fileName": "cars.dat",
+    "price": 3
   },
   {
     "filmName": "monsters",
-    "fileName": "monsters.dat"
+    "fileName": "monsters.dat",
+    "price": 2
   }
 ]

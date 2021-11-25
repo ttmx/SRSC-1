@@ -1,7 +1,7 @@
 package sadkdp.auth
 
-import coins.Coin
 import coins.CoinsRepository
+import coins.Coin
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -26,6 +26,7 @@ class AuthClient(
     private val outSocketAddress: SocketAddress,
     private val keyStore: KeyStore
 ) {
+    private var lastN2: Int? = null
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
 
@@ -45,7 +46,6 @@ class AuthClient(
     }
 
     fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
-        val coin = coins.getCoin(coinId)
         sendHello(userId, proxyBoxId)
         val authenticationRequest = receiveAuthenticationRequest()
         sendAuthentication(authenticationRequest, password, movieId)
@@ -83,8 +83,9 @@ class AuthClient(
 
         cEnc.init(Cipher.ENCRYPT_MODE, secretKey)
 
+        lastN2 = random.nextInt()
         val out = cEnc.doFinal(
-            ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, random.nextInt(), movieId))
+            ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, lastN2!!, movieId))
         )
         val ep = EncapsulatedPacketHash(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
@@ -98,11 +99,16 @@ class AuthClient(
     }
 
     private fun sendPayment(paymentRequest: PaymentRequestDto.Payload) {
-        fun getCoin(): Coin {
-            //TODO("check price")
-            return coins.getCoin("coinId")
-        }
         val (n2_, n3, price) = paymentRequest
+
+        fun getCoin(): Coin {
+            // just get the first coin
+            return coins.coins.first { it.value>=price }
+        }
+
+        if (n2_ -1 != lastN2){
+            throw RuntimeException()
+        }
         val payment = PaymentDto.Payload(n3 + 1, random.nextInt(), getCoin())
         val signature = AuthHelper.sign(payment, privateKey())
 

@@ -4,6 +4,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
+import movies.Movie
 import movies.MoviesRepository
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
@@ -32,6 +33,7 @@ class AuthServer(
     private val settings: Settings,
     private val keyStore: KeyStore
 ) {
+    private var lastMovie: Movie? = null
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
 
@@ -99,14 +101,17 @@ class AuthServer(
     private fun sendPaymentRequest(authentication: AuthenticationDto, socketAddress: SocketAddress) {
         val (n1_, n2, movieId) = authentication
 
-        //Todo currently single user and single proxyboxid
         if (n1_ -1 != lastN1) {
             throw RuntimeException("$n1_ -1 != $lastN1") //TODO send error
         }
-        //Todo dynamic price
 
+        if( movieId !in movies.movies){
+            throw RuntimeException("Movie $movieId not found") //TODO send error
+        }
+
+        lastMovie = movies.movies[movieId]!!
         val n3 = CryptoTools.rand(256)
-        val payload = PaymentRequestDto.Payload(n2 + 1, n3, 1)
+        val payload = PaymentRequestDto.Payload(n2 + 1, n3, lastMovie!!.price)
         lastN3 = n3
 
         val signature = AuthHelper.sign(payload, privateKey())
@@ -127,6 +132,13 @@ class AuthServer(
         if(n3_-1!= lastN3){
             throw RuntimeException("$n3_ -1 != $lastN3") //TODO send error
         }
+
+        coin.verifySignature()
+        if (coin.value < (lastMovie?.price ?: Int.MAX_VALUE)){
+            throw RuntimeException("Coin worth too little")
+        }
+
+
 
         val payloadContent = TicketCredentialsDto.Payload.Content(ep.from.hostAddress, getProxyPort(), "movie", settings, n4 + 1)
 

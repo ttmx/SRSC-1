@@ -1,27 +1,11 @@
 package coins
 
-import kotlinx.datetime.LocalDate
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.io.File
 
 class CoinsRepository {
-    private val coins = HashMap<String, Coin>()
+    val coins:List<Coin> = Json.decodeFromString(File("config/proxy/coins.json").readText())
 
-    init {
-        coins["coinId"] = Coin(
-            "coinId",
-            "bank",
-            25,
-            LocalDate(2022, 2, 1),
-            ByteArray(2),
-            ByteArray(0),
-            ByteArray(0),
-            ByteArray(0),
-            ByteArray(0)
-        )
-//        println(String(ProtoBuf.encodeToByteArray(coins["coinId"])))
-    }
-
-    fun getCoin(coinId: String): Coin {
-        return coins[coinId] ?: throw RuntimeException("Coin not found!")
-    }
 
 }
