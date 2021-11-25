@@ -15,7 +15,7 @@ import java.util.*
 
 fun main() {
     val kpg: KeyPairGenerator = KeyPairGenerator.getInstance("EC")
-    val ecsp: ECGenParameterSpec = ECGenParameterSpec("secp256r1")
+    val ecsp = ECGenParameterSpec("secp256r1")
     kpg.initialize(ecsp)
 
     //TODO replace with bank key
@@ -39,7 +39,7 @@ fun main() {
         val authHeader = Coin.AuthenticityHeader(header, pubKey.encoded, dsa.sign())
         dsa.initSign(bankPrivKey)
         dsa.update(Json.encodeToString(authHeader).encodeToByteArray())
-        val issuerHeader = Coin.IssuerHeader(authHeader, bankPublicKey.encoded, dsa.sign())
+        val issuerHeader = Coin.IssuerHeader(authHeader, dsa.sign(),bankPublicKey.encoded)
 
         val issuerHeaderJson = Json.encodeToString(issuerHeader).encodeToByteArray()
         val hc = Coin(issuerHeader, shaDigest.digest(issuerHeaderJson), sha3Digest.digest(issuerHeaderJson))

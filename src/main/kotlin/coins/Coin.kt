@@ -4,12 +4,12 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.bouncycastle.internal.asn1.bsi.BSIObjectIdentifiers.algorithm
 import secureDatagrams.CryptoTools
 import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.Signature
+import java.security.spec.ECPublicKeySpec
 import java.security.spec.X509EncodedKeySpec
 
 
@@ -19,7 +19,7 @@ data class Coin(
     val IntegrityProof1: ByteArray,
     val IntegrityProof2: ByteArray
 ) {
-    companion object{
+    companion object {
         private val shaDigest: MessageDigest = MessageDigest.getInstance("SHA-256")
         private val sha3Digest: MessageDigest = MessageDigest.getInstance("SHA3-256")
 
@@ -28,7 +28,7 @@ data class Coin(
     }
 
     val coinId
-    get() = issuerHeader.authHeader.header.coinId
+        get() = issuerHeader.authHeader.header.coinId
 
     val coinIssuer
         get() = issuerHeader.authHeader.header.coinIssuer
@@ -36,13 +36,13 @@ data class Coin(
     val value
         get() = issuerHeader.authHeader.header.value
 
-    fun verifySignature(){
+    fun verifySignature() {
         var toCheck = Json.encodeToString(issuerHeader).encodeToByteArray()
-        CryptoTools.checkHash(shaDigest,toCheck,IntegrityProof1)
-        CryptoTools.checkHash(sha3Digest,toCheck,IntegrityProof2)
+        CryptoTools.checkHash(shaDigest, toCheck, IntegrityProof1)
+        CryptoTools.checkHash(sha3Digest, toCheck, IntegrityProof2)
 
 
-        var pubKey:PublicKey = keyFactory.generatePublic(X509EncodedKeySpec(issuerHeader.issuerPublicKey))
+        var pubKey: PublicKey = keyFactory.generatePublic(X509EncodedKeySpec(issuerHeader.issuerPublicKey))
         toCheck = Json.encodeToString(issuerHeader.authHeader).encodeToByteArray()
 
         dsa.initVerify(pubKey)
@@ -50,7 +50,8 @@ data class Coin(
         dsa.verify(issuerHeader.issuerSignature)
 
 
-        pubKey = keyFactory.generatePublic(X509EncodedKeySpec(issuerHeader.authHeader.coinPubKey))
+        pubKey = keyFactory.generatePublic(ECPublicKeySpec(issuerHeader.authHeader.coinPubKey))
+
         toCheck = Json.encodeToString(issuerHeader.authHeader.header).encodeToByteArray()
 
         dsa.initVerify(pubKey)
