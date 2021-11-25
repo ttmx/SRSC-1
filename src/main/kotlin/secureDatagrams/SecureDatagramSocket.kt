@@ -3,9 +3,7 @@ package secureDatagrams
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.nio.ByteBuffer
-import java.security.SecureRandom
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
@@ -35,9 +33,8 @@ class SecureDatagramSocket : DatagramSocket {
     fun useSettings(settings: Settings) {
         //TODO change this up
         sett = settings
-        val kg = KeyGenerator.getInstance(sett.algorithm)
-        kg.init(SecureRandom(sett.symPassword.toByteArray()))
-        key = kg.generateKey()
+
+        key = SecretKeySpec(sett.key, sett.algorithm)
         encryptCipher = Cipher.getInstance(sett.symmetricSuite)
         decryptCipher = Cipher.getInstance(sett.symmetricSuite)
 

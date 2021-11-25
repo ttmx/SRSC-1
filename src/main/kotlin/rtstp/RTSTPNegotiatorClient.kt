@@ -37,7 +37,7 @@ class RTSTPNegotiatorClient(
         val ackVerificationDto = receiveVerification()
         sendAckVerification(ackVerificationDto)
         //receiveSyncInitialFrame(syncInitialFrameDto)
-        return outSocket
+        return inSocket
     }
 
     private fun sendAckVerification(ackVerificationDto: Pair<Int, Int>) {
