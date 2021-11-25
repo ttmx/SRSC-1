@@ -73,6 +73,14 @@ class AuthServer(
         return keyStore.getKey("signal", "password".toCharArray()) as PrivateKey
     }
 
+    private fun String.decodeHex(): ByteArray {
+        check(length % 2 == 0) { "Must have an even length" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+    }
+
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
@@ -85,9 +93,11 @@ class AuthServer(
 
     private fun sendAuthenticationRequest(hello: HelloDto, socketAddress: SocketAddress) {
         val (userId, proxyBoxId) = hello
-        //Todo proxyboxid
+        if (!publicKey("proxy").encoded.contentEquals(proxyBoxId.decodeHex())) {
+            throw RuntimeException("Wrong ProxyBox")
+        }
         if (users.getUser(userId) == null) {
-            throw RuntimeException() //TODO send error
+            throw RuntimeException("User does not exist")
         }
         val salt = "salt"//CryptoTools.salt(4) //Todo save this???
         val counter = 123//random.nextInt(10) //TODO pbe difficulty
