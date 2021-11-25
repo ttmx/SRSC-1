@@ -16,11 +16,13 @@
  */
 
 import coins.CoinsRepository;
+import kotlin.Pair;
 import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
 import rtstp.RTSTPNegotiatorClient;
 import sadkdp.auth.AuthClient;
 import sadkdp.dto.TicketCredentialsDto;
+import secureDatagrams.SecureDatagramSocket;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -45,6 +47,10 @@ class hjUDPproxy {
             System.err.println("Configuration file not found!");
             System.exit(1);
         }
+
+        if(args.length!=4){
+            System.out.println("Usage is `proxy <user> <password> <proxyboxId> <movieName>");
+        }
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         Properties properties = new Properties();
         properties.load(inputStream);
@@ -65,7 +71,7 @@ class hjUDPproxy {
                 parseSocketAddress(signal),
                 getKeyStoreFromFile("PKCS12", "config/proxy/proxy.p12", "password")
         );
-        Triple<TicketCredentialsDto.Payload, byte[], byte[]> streamInfo = auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "cars");
+        Triple<TicketCredentialsDto.Payload, byte[], byte[]> streamInfo = auth.getStreamInfo(args[0], args[1], args[2], args[3]);
         DatagramSocket inSocket = new RTSTPNegotiatorClient(streamInfo, parseSocketAddress(properties.getProperty("streaming"))).negotiate();
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];

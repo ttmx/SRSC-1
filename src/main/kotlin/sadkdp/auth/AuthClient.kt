@@ -52,7 +52,6 @@ class AuthClient(
         userId: String,
         password: String,
         proxyBoxId: String,
-        coinId: String,
         movieId: String
     ): Triple<TicketCredentialsDto.Payload, ByteArray, ByteArray> {
         try {
