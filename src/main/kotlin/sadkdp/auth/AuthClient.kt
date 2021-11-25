@@ -22,11 +22,12 @@ import javax.crypto.spec.PBEKeySpec
 @ExperimentalSerializationApi
 class AuthClient(
     private val coins: CoinsRepository,
-    private val inSocket: DatagramSocket,
+    inSocketAddress: SocketAddress,
     private val outSocketAddress: SocketAddress,
     private val keyStore: KeyStore
 ) {
     private var lastN2: Int? = null
+    private val inSocket = DatagramSocket(inSocketAddress)
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
 
@@ -40,18 +41,26 @@ class AuthClient(
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        //TODO version needs to be parameterized hmac also broken
+        //TODO version needs to be parameterize
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
-    fun getStreamInfo(userId: String, password: String, proxyBoxId: String, coinId: String, movieId: String): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
+    fun getStreamInfo(
+        userId: String,
+        password: String,
+        proxyBoxId: String,
+        coinId: String,
+        movieId: String
+    ): Triple<TicketCredentialsDto.Payload, ByteArray, ByteArray> {
         sendHello(userId, proxyBoxId)
         val authenticationRequest = receiveAuthenticationRequest()
         sendAuthentication(authenticationRequest, password, movieId)
         val paymentRequest = receivePaymentRequest()
         sendPayment(paymentRequest)
-        return receiveTicketCredentials()
+        val ticketCredentials = receiveTicketCredentials()
+        inSocket.close()
+        return ticketCredentials
     }
 
     private fun sendHello(userId: String, proxyBoxId: String) {
@@ -115,13 +124,14 @@ class AuthClient(
         sendPacket(PaymentDto(payment, signature), 5, outSocketAddress)
     }
 
-    private fun receiveTicketCredentials(): Pair<TicketCredentialsDto.Payload.Content, ByteArray> {
+    private fun receiveTicketCredentials(): Triple<TicketCredentialsDto.Payload, ByteArray, ByteArray> {
         val data = receivePacket()
-        val (payload, signature) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
-        AuthHelper.verify(payload, signature, publicKey("signal"))
-        val (proxyPayload, streamingPayload) = payload
-        val payloadContent = AuthHelper.decrypt<TicketCredentialsDto.Payload.Content>(proxyPayload, privateKey())
-        return Pair(payloadContent, streamingPayload)
+        val (proxyPayload, proxySignature,
+            streamingPayload, streamingSignature) = ProtoBuf.decodeFromByteArray<TicketCredentialsDto>(data.dataBytes)
+        AuthHelper.verify(proxyPayload, proxySignature, publicKey("signal"))
+        AuthHelper.verify(streamingPayload, streamingSignature, publicKey("signal"))
+        val payloadContent = AuthHelper.decrypt<TicketCredentialsDto.Payload>(proxyPayload, privateKey())
+        return Triple(payloadContent, streamingPayload, streamingSignature)
     }
 
     private fun receivePacket(): EncapsulatedPacketHash {

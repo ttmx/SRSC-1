@@ -33,25 +33,17 @@ class EncapsulatedPacket {
     val version: Byte
         get() = (this.data[0].toInt() ushr 4).toByte()
 
-    private val hmacBytes: ByteArray
+    val hmacBytes: ByteArray
         get() = this.data.copyOfRange(HEADER_SIZE + len, HEADER_SIZE + len + hMac.macLength)
 
     val dataBytes: ByteArray
         get() = this.data.copyOfRange(HEADER_SIZE, HEADER_SIZE + len)
 
 
-    constructor(data: ByteArray, address: InetAddress, port: Int) {
-        this.data = data
-        this.from = address
-        this.port = port
-        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
-    }
-
     constructor(packet: DatagramPacket) {
         this.data = packet.data
         this.from = packet.address
         this.port = packet.port
-//        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
     }
 
     constructor(raw: ByteArray, len: Int, msgType: Byte) {
@@ -60,6 +52,10 @@ class EncapsulatedPacket {
         ByteBuffer.wrap(this.data).put(CryptoTools.makeHeader(VERSION, msgType, len.toShort()))
         hMac.update(this.data, HEADER_SIZE, len)
         hMac.doFinal(this.data, HEADER_SIZE + len)
+    }
+
+    fun checkHmac() {
+        CryptoTools.checkHmac(hMac, dataBytes, hmacBytes)
     }
 
 

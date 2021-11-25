@@ -12,8 +12,6 @@ import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.Settings
 import users.UsersRepository
 import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -24,7 +22,6 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-import kotlin.system.exitProcess
 
 @ExperimentalSerializationApi
 class AuthServer(
@@ -37,8 +34,8 @@ class AuthServer(
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
 
-    private var lastN1:Int? = null
-    private var lastN3:Int? = null
+    private var lastN1: Int? = null
+    private var lastN3: Int? = null
 
     fun processMessage(p: DatagramPacket) {
         val ep = EncapsulatedPacketHash(p)
@@ -49,7 +46,7 @@ class AuthServer(
         when (ep.msgType.toInt()) {
             hello -> sendAuthenticationRequest(decodeHello(ep), socketAddress)
             authentication -> sendPaymentRequest(decodeAuthentication(ep), socketAddress)
-            payment -> sendTicketCredentials(decodePayment(ep), socketAddress,ep)
+            payment -> sendTicketCredentials(decodePayment(ep), socketAddress, ep)
             9 -> throw RuntimeException(/*TODO*/)
             else -> throw RuntimeException(/*TODO*/)
         }
@@ -129,7 +126,7 @@ class AuthServer(
 
         val (n3_, n4, coin) = payload
 
-        if(n3_-1!= lastN3){
+        if (n3_ - 1 != lastN3) {
             throw RuntimeException("$n3_ -1 != $lastN3") //TODO send error
         }
 
@@ -140,20 +137,21 @@ class AuthServer(
 
 
 
-        val payloadContent = TicketCredentialsDto.Payload.Content(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
+        val payloadContent = TicketCredentialsDto.Payload(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
 
         val proxyPayload = AuthHelper.encrypt(payloadContent, publicKey("proxy"))
         val streamingPayload = AuthHelper.encrypt(payloadContent.copy(nc = random.nextInt()), publicKey("streaming"))
-        val payload1 = TicketCredentialsDto.Payload(proxyPayload, streamingPayload)
 
-        val signature = AuthHelper.sign(payload1, privateKey())
+        val proxySignature = AuthHelper.sign(proxyPayload, privateKey())
+        val streamingSignature = AuthHelper.sign(streamingPayload, privateKey())
 
-        sendPacket(TicketCredentialsDto(payload1, signature), 6, socketAddress)
+        val dto = TicketCredentialsDto(proxyPayload, proxySignature, streamingPayload, streamingSignature)
+        sendPacket(dto, 6, socketAddress)
     }
 
     private fun getProxyPort(): Int {
         val inputStream: InputStream
-            inputStream = FileInputStream("config/signal/signal.properties")
+        inputStream = FileInputStream("config/signal/signal.properties")
         val properties = Properties()
         properties.load(inputStream)
         return properties.getProperty("proxyport").toInt()

@@ -60,17 +60,3 @@ class EncapsulatedPacketHash {
 
 
 }
-
-fun main(){
-    val ba = ByteArray(200)
-    ba[0]=63
-    val e = EncapsulatedPacketHash(ba,10,1)
-
-    val a = e.shaBytes
-    val b = EncapsulatedPacketHash.shaDig.digest(e.dataBytes)
-    println(String(a))
-    println(String(b))
-    println(a.contentEquals(b))
-
-    CryptoTools.checkHash(EncapsulatedPacketHash.shaDig, e.dataBytes, e.shaBytes)
-}

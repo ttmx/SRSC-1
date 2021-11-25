@@ -4,13 +4,15 @@
  * for clients to play in real time the transmitted movies
  */
 
-import secureDatagrams.SecureDatagramSocket;
+import org.jetbrains.annotations.NotNull;
+import rtstp.RTSTPNegotiatorServer;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.security.KeyStore;
 import java.security.Security;
 
 class hjStreamServer {
@@ -30,7 +32,10 @@ class hjStreamServer {
         DataInputStream g = new DataInputStream(new FileInputStream(args[0]));
         byte[] buff = new byte[4096];
 
-        DatagramSocket s = new SecureDatagramSocket("stream");
+        DatagramSocket s = new RTSTPNegotiatorServer(
+                9997,
+                getKeyStoreFromFile("PKCS12", "config/streaming/streaming.p12", "password")
+        ).awaitNegotiation();
         InetSocketAddress addr = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
         DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
         long t0 = System.nanoTime(); // Ref. time
@@ -83,5 +88,13 @@ class hjStreamServer {
         System.out.println("Throughput " + count / duration + " fps");
         System.out.println("Throughput " + (8 * (csize) / duration) / 1000 + " Kbps");
 
+    }
+
+    @NotNull
+    private static KeyStore getKeyStoreFromFile(String type, String fileName, String password) throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(type);
+        FileInputStream stream = new FileInputStream(fileName);
+        keyStore.load(stream, password.toCharArray());
+        return keyStore;
     }
 }

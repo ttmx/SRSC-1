@@ -17,7 +17,9 @@
 
 import coins.CoinsRepository;
 import kotlin.Pair;
+import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
+import rtstp.RTSTPNegotiatorClient;
 import sadkdp.auth.AuthClient;
 import sadkdp.dto.TicketCredentialsDto;
 import secureDatagrams.SecureDatagramSocket;
@@ -58,18 +60,15 @@ class hjUDPproxy {
                 .map(hjUDPproxy::parseSocketAddress)
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new DatagramSocket(inSocketAddress);
-
         System.out.print("Starting proxy server");
         AuthClient auth = new AuthClient(
                 new CoinsRepository(),
-                inSocket,
+                inSocketAddress,
                 parseSocketAddress(signal),
                 getKeyStoreFromFile("PKCS12", "config/proxy/proxy.p12", "password")
         );
-        Pair<TicketCredentialsDto.Payload.Content, byte[]> streamInfo = auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "");
-        SocketAddress inSocketAddress2 = new InetSocketAddress(streamInfo.component1().getIp(), streamInfo.component1().getPort());
-//        SecureDatagramSocket secureDatagramSocket = new SecureDatagramSocket(streamInfo.component1().getSettings(), inSocketAddress2);
+        Triple<TicketCredentialsDto.Payload, byte[], byte[]> streamInfo = auth.getStreamInfo("user", "password", "proxyBoxId", "coinId", "cars");
+        DatagramSocket inSocket = new RTSTPNegotiatorClient(streamInfo, parseSocketAddress(properties.getProperty("streaming"))).negotiate();
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 
