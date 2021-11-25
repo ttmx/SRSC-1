@@ -12,7 +12,7 @@ import javax.crypto.KeyGenerator
 data class Settings(
     val algorithm: String,
     val symmetricSuite: String,
-    val symPassword: String,
+    val keyHex: String,
     var hmacSuite: String,
     private val ivHex: String?,
     private val hmacKeyHex: String
@@ -29,19 +29,13 @@ data class Settings(
         }
     }
 
-    val key = genKey()
+    val key = keyHex.decodeHex()
 
     val iv: ByteArray?
         get() = ivHex?.decodeHex()
 
     val hmacKey: ByteArray
         get() = hmacKeyHex.decodeHex()
-
-    private fun genKey(): ByteArray {
-        val kg = KeyGenerator.getInstance(algorithm)
-        kg.init(SecureRandom(symPassword.toByteArray()))
-        return kg.generateKey().encoded
-    }
 
     private fun String.decodeHex(): ByteArray {
         check(length % 2 == 0) { "Must have an even length" }

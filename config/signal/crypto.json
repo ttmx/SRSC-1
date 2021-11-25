@@ -1,7 +1,7 @@
 {
   "algorithm":"AES",
-  "symmetricSuite":"AES/CBC/PKCS5Padding",
-  "symPassword":"passbuesegura",
+  "symmetricSuite":"AES/CBC/PKCS7Padding",
+  "keyHex":"D645F9BD4819085EE232AF3500C637EDCF18C115E20FBCD6",
   "ivHex":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
   "hmacSuite":"HmacSHA512",
   "hmacKeyHex":"5078423FBCABC56B44697DF0E00460A3BBEA1D7E5AF251675C057255790AD668"
