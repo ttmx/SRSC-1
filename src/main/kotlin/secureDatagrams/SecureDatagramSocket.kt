@@ -31,7 +31,6 @@ class SecureDatagramSocket : DatagramSocket {
     }
 
     fun useSettings(settings: Settings) {
-        //TODO change this up
         sett = settings
 
         key = SecretKeySpec(sett.key, sett.algorithm)

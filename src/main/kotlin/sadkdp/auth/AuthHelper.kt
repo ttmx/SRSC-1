@@ -25,7 +25,7 @@ class AuthHelper {
             verifier.initVerify(publicKey)
             verifier.update(ProtoBuf.encodeToByteArray(dto))
             if (!verifier.verify(signature1)) {
-                throw RuntimeException(/*TODO*/)
+                throw RuntimeException("Invalid Signature")
             }
         }
 

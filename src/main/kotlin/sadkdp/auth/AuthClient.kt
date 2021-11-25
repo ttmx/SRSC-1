@@ -55,20 +55,27 @@ class AuthClient(
         coinId: String,
         movieId: String
     ): Triple<TicketCredentialsDto.Payload, ByteArray, ByteArray> {
-        sendHello(userId, proxyBoxId)
-        val authenticationRequest = receiveAuthenticationRequest()
-        sendAuthentication(authenticationRequest, password, movieId)
-        val paymentRequest = receivePaymentRequest()
-        sendPayment(paymentRequest)
-        val ticketCredentials = receiveTicketCredentials()
-        inSocket.close()
-        return ticketCredentials
+        try {
+            sendHello(userId, proxyBoxId)
+            val authenticationRequest = receiveAuthenticationRequest()
+            sendAuthentication(authenticationRequest, password, movieId)
+            val paymentRequest = receivePaymentRequest()
+            sendPayment(paymentRequest)
+            val ticketCredentials = receiveTicketCredentials()
+            inSocket.close()
+            return ticketCredentials
+        } catch (e: Exception) {
+            val error = (e.message ?: "Unknown Error").toByteArray()
+            val ep = EncapsulatedPacketHash(error, error.size, 9)
+            outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+            throw e
+        }
     }
 
     private fun sendHello(userId: String, proxyBoxId: String) {
         val helloDto = ProtoBuf.encodeToByteArray(HelloDto(userId, proxyBoxId))
         val packet = ByteBuffer.allocate(EncapsulatedPacketHash.HEADER_SIZE + helloDto.size)
-            .put(CryptoTools.makeHeader(0b010/*TODO*/, 1, helloDto.size.toShort()))
+            .put(CryptoTools.makeHeader(EncapsulatedPacketHash.VERSION, 1, helloDto.size.toShort()))
             .put(helloDto)
             .array()
         outSocket.send(DatagramPacket(packet, packet.size, outSocketAddress))
@@ -142,12 +149,12 @@ class AuthClient(
         inSocket.receive(inPacket)
         val data = EncapsulatedPacketHash(inPacket)
         if (data.version != EncapsulatedPacketHash.VERSION) {
-            throw RuntimeException(/*TODO*/)
+            throw RuntimeException("Wrong Packet Version")
         }
         return when (data.msgType.toInt()) {
             2, 4, 6 -> data
-            10 -> throw RuntimeException(/*TODO*/)
-            else -> throw RuntimeException(/*TODO*/)
+            10 -> throw RuntimeException("Server Had An Error")
+            else -> throw RuntimeException("Invalid msgType")
         }
     }
 

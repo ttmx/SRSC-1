@@ -41,20 +41,27 @@ class AuthServer(
     private var lastN3: Int? = null
 
     fun processMessage(p: DatagramPacket) {
-        val ep = EncapsulatedPacketHash(p)
-        if (ep.version != EncapsulatedPacketHash.VERSION) {
-            throw RuntimeException(/*TODO*/)
-        }
-        val hello = 1
-        val authentication = 3
-        val payment = 5
         val socketAddress = InetSocketAddress(p.address, getProxyPort())
-        when (ep.msgType.toInt()) {
-            hello -> sendAuthenticationRequest(decodeHello(ep), socketAddress)
-            authentication -> sendPaymentRequest(decodeAuthentication(ep), socketAddress)
-            payment -> sendTicketCredentials(decodePayment(ep), socketAddress, ep)
-            9 -> throw RuntimeException(/*TODO*/)
-            else -> throw RuntimeException(/*TODO*/)
+        try {
+            val ep = EncapsulatedPacketHash(p)
+            if (ep.version != EncapsulatedPacketHash.VERSION) {
+                throw RuntimeException("Wrong Packet Version")
+            }
+            val hello = 1
+            val authentication = 3
+            val payment = 5
+            when (ep.msgType.toInt()) {
+                hello -> sendAuthenticationRequest(decodeHello(ep), socketAddress)
+                authentication -> sendPaymentRequest(decodeAuthentication(ep), socketAddress)
+                payment -> sendTicketCredentials(decodePayment(ep), socketAddress, ep)
+                9 -> throw RuntimeException("Client Had An Error")
+                else -> throw RuntimeException("Invalid msgType")
+            }
+        } catch (e: Exception) {
+            val error = (e.message ?: "Unknown Error").toByteArray()
+            val ep = EncapsulatedPacketHash(error, error.size, 10)
+            outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
+            throw e
         }
     }
 
@@ -68,7 +75,6 @@ class AuthServer(
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        //TODO version needs to be parameterized hmac also broken
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
@@ -105,11 +111,11 @@ class AuthServer(
         val (n1_, n2, movieId) = authentication
 
         if (n1_ - 1 != lastN1) {
-            throw RuntimeException("$n1_ -1 != $lastN1") //TODO send error
+            throw RuntimeException("$n1_ -1 != $lastN1")
         }
 
         if (movieId !in movies.movies) {
-            throw RuntimeException("Movie $movieId not found") //TODO send error
+            throw RuntimeException("Movie $movieId not found")
         }
 
         lastMovie = movies.movies[movieId]!!
@@ -133,7 +139,7 @@ class AuthServer(
         val (n3_, n4, coin) = payload
 
         if (n3_ - 1 != lastN3) {
-            throw RuntimeException("$n3_ -1 != $lastN3") //TODO send error
+            throw RuntimeException("$n3_ -1 != $lastN3")
         }
 
         val k = Json.decodeFromString<ByteArray>(File("config/signal/bankkey.json").readText())

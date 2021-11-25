@@ -49,7 +49,9 @@ class RTSTPNegotiatorClient(
         if (na1_ - 1 != lastN1) {
             throw RuntimeException("$na1_ - 1 != $lastN1")
         }
-        //TODO verification
+        if (!verification) {
+            throw RuntimeException("Streaming Server Denied Service")
+        }
         return Pair(na2 + 1, random.nextInt())
     }
 
@@ -65,10 +67,10 @@ class RTSTPNegotiatorClient(
         inSocket.receiveCustom(inPacket)
         val data = EncapsulatedPacket(inPacket)
         if (data.version != EncapsulatedPacket.VERSION) {
-            throw RuntimeException(/*TODO*/)
+            throw RuntimeException("Wrong Packet Version")
         }
         return when (data.msgType.toInt()) {
-            1, 3 -> throw RuntimeException(/*TODO*/)
+            1, 3 -> throw RuntimeException("Invalid msgType (expected client type)")
             else -> data
         }
     }
