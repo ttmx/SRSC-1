@@ -9,7 +9,6 @@ import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.Signature
-import java.security.spec.ECPublicKeySpec
 import java.security.spec.X509EncodedKeySpec
 
 

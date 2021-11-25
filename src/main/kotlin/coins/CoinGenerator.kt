@@ -39,7 +39,7 @@ fun main() {
         val authHeader = Coin.AuthenticityHeader(header, pubKey.encoded, dsa.sign())
         dsa.initSign(bankPrivKey)
         dsa.update(Json.encodeToString(authHeader).encodeToByteArray())
-        val issuerHeader = Coin.IssuerHeader(authHeader, dsa.sign(),bankPublicKey.encoded)
+        val issuerHeader = Coin.IssuerHeader(authHeader, dsa.sign(), bankPublicKey.encoded)
 
         val issuerHeaderJson = Json.encodeToString(issuerHeader).encodeToByteArray()
         val hc = Coin(issuerHeader, shaDigest.digest(issuerHeaderJson), sha3Digest.digest(issuerHeaderJson))
@@ -47,7 +47,7 @@ fun main() {
         println(Json.encodeToString(hc))
     }
     File("config/proxy/coins.json").writeText(Json.encodeToString(coinList))
-    File("config/signal/bankkey.json").writeBytes(bankPublicKey.encoded)
+    File("config/signal/bankkey.json").writeText(Json.encodeToString(bankPublicKey.encoded))
     println(Json.encodeToString(coinList))
 
 }

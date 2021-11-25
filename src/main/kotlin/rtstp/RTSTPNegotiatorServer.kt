@@ -10,7 +10,6 @@ import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
 import secureDatagrams.SecureDatagramSocket
 import java.net.DatagramPacket
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.KeyStore
@@ -55,13 +54,13 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
 
     private fun sendSyncInitialFrame(ackVerificationDto: Pair<Int, Int>) {
         val (na2_, na3) = ackVerificationDto
-        
+
     }
 
-    private fun receiveAckVerification() : Pair<Int, Int>{
+    private fun receiveAckVerification(): Pair<Int, Int> {
         val data = receivePacket()
         val (na2_, na3) = ProtoBuf.decodeFromByteArray<Pair<Int, Int>>(data.dataBytes)
-        if(na2_-1 != lastNa2){
+        if (na2_ - 1 != lastNa2) {
             throw RuntimeException()
         }
         // No point in sending frame numbers, a random number is good to make equal frames seem different to an attacker
@@ -77,19 +76,21 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
 
     private fun receiveRequestAndCredentials(): Pair<TicketCredentialsDto.Payload, Triple<Int, Int, Boolean>> {
         val data = receivePacket()
-        val (payload, signature) = ProtoBuf.decodeFromByteArray<RequestAndCredentialsDto>(data.dataBytes)
+        val (payload, signature, na1) = ProtoBuf.decodeFromByteArray<RequestAndCredentialsDto>(data.dataBytes)
         AuthHelper.verify(payload, signature, publicKey("signal"))
         val content = AuthHelper.decrypt<TicketCredentialsDto.Payload>(payload, privateKey())
-        val (ip, port, movieId, settings, nc) = content
         lastNa2 = random.nextInt()
-        return Pair(content, Triple(nc + 1, lastNa2!!, true))
+        return Pair(content, Triple(na1 + 1, lastNa2!!, true))
     }
 
     private fun receivePacket(): EncapsulatedPacket {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
         inSocket.receiveCustom(inPacket)
-        val data = EncapsulatedPacket(inPacket) //TODO  (version check missing)
+        val data = EncapsulatedPacket(inPacket)
+        if (data.version != EncapsulatedPacket.VERSION) {
+            throw RuntimeException(/*TODO*/)
+        }
         return when (data.msgType.toInt()) {
             1 -> data
             2, 4 -> throw RuntimeException(/*TODO*/)

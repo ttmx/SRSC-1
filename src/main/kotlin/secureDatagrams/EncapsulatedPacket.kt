@@ -14,7 +14,7 @@ class EncapsulatedPacket {
 
         private val hMac: Mac = Mac.getInstance(sett.hmacSuite)
         const val HEADER_SIZE = 1 + 2
-        const val VERSION: Byte = 1
+        const val VERSION: Byte = 3
 
         init {
             hMac.init(SecretKeySpec(sett.hmacKey, sett.hmacSuite))

@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 class CoinsRepository {
-    val coins:List<Coin> = Json.decodeFromString(File("config/proxy/coins.json").readText())
+    val coins: List<Coin> = Json.decodeFromString(File("config/proxy/coins.json").readText())
 
 
 }

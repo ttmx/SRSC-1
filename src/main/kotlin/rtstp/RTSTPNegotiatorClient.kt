@@ -28,7 +28,6 @@ class RTSTPNegotiatorClient(
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        //TODO version needs to be parameterized
         outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
@@ -64,7 +63,10 @@ class RTSTPNegotiatorClient(
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
         inSocket.receiveCustom(inPacket)
-        val data = EncapsulatedPacket(inPacket) //TODO  (version check missing)
+        val data = EncapsulatedPacket(inPacket)
+        if (data.version != EncapsulatedPacket.VERSION) {
+            throw RuntimeException(/*TODO*/)
+        }
         return when (data.msgType.toInt()) {
             1, 3 -> throw RuntimeException(/*TODO*/)
             else -> data

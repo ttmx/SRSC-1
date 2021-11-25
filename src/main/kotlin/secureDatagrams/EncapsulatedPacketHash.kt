@@ -11,7 +11,7 @@ class EncapsulatedPacketHash {
     companion object {
         internal val shaDig: MessageDigest = MessageDigest.getInstance("SHA-256")
         const val HEADER_SIZE = 1 + 2
-        const val VERSION: Byte = 1
+        const val VERSION: Byte = 2
     }
 
     var port by Delegates.notNull<Int>()
@@ -52,7 +52,7 @@ class EncapsulatedPacketHash {
 
     constructor(raw: ByteArray, len: Int, msgType: Byte) {
         this.data = ByteArray(HEADER_SIZE + len + shaDig.digestLength)
-        raw.copyInto(this.data, HEADER_SIZE,0,len)
+        raw.copyInto(this.data, HEADER_SIZE, 0, len)
         ByteBuffer.wrap(this.data).put(CryptoTools.makeHeader(VERSION, msgType, len.toShort()))
         shaDig.update(this.data, HEADER_SIZE, len)
         shaDig.digest(this.data, HEADER_SIZE + len, shaDig.digestLength)

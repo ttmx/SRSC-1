@@ -42,6 +42,9 @@ class AuthServer(
 
     fun processMessage(p: DatagramPacket) {
         val ep = EncapsulatedPacketHash(p)
+        if (ep.version != EncapsulatedPacketHash.VERSION) {
+            throw RuntimeException(/*TODO*/)
+        }
         val hello = 1
         val authentication = 3
         val payment = 5
@@ -101,11 +104,11 @@ class AuthServer(
     private fun sendPaymentRequest(authentication: AuthenticationDto, socketAddress: SocketAddress) {
         val (n1_, n2, movieId) = authentication
 
-        if (n1_ -1 != lastN1) {
+        if (n1_ - 1 != lastN1) {
             throw RuntimeException("$n1_ -1 != $lastN1") //TODO send error
         }
 
-        if( movieId !in movies.movies){
+        if (movieId !in movies.movies) {
             throw RuntimeException("Movie $movieId not found") //TODO send error
         }
 
@@ -135,17 +138,17 @@ class AuthServer(
 
         val k = Json.decodeFromString<ByteArray>(File("config/signal/bankkey.json").readText())
 
-        if (!k.contentEquals(coin.issuerHeader.issuerPublicKey)){
+        if (!k.contentEquals(coin.issuerHeader.issuerPublicKey)) {
             throw RuntimeException("Invalid bank issuer key")
         }
         coin.verifySignature()
-        if (coin.value < (lastMovie?.price ?: Int.MAX_VALUE)){
+        if (coin.value < (lastMovie?.price ?: Int.MAX_VALUE)) {
             throw RuntimeException("Coin worth too little")
         }
 
 
-
-        val payloadContent = TicketCredentialsDto.Payload(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
+        val payloadContent =
+            TicketCredentialsDto.Payload(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
 
         val proxyPayload = AuthHelper.encrypt(payloadContent, publicKey("proxy"))
         val streamingPayload = AuthHelper.encrypt(payloadContent.copy(nc = random.nextInt()), publicKey("streaming"))

@@ -1,7 +1,7 @@
 package sadkdp.auth
 
-import coins.CoinsRepository
 import coins.Coin
+import coins.CoinsRepository
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -13,7 +13,10 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
-import java.security.*
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -41,7 +44,6 @@ class AuthClient(
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        //TODO version needs to be parameterize
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
@@ -96,7 +98,7 @@ class AuthClient(
         val out = cEnc.doFinal(
             ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, lastN2!!, movieId))
         )
-        val ep = EncapsulatedPacketHash(out, out.size, 3) //TODO version needs to be parameterized hmac also broken
+        val ep = EncapsulatedPacketHash(out, out.size, 3)
         outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
 
@@ -112,10 +114,10 @@ class AuthClient(
 
         fun getCoin(): Coin {
             // just get the first coin
-            return coins.coins.first { it.value>=price }
+            return coins.coins.first { it.value >= price }
         }
 
-        if (n2_ -1 != lastN2){
+        if (n2_ - 1 != lastN2) {
             throw RuntimeException()
         }
         val payment = PaymentDto.Payload(n3 + 1, random.nextInt(), getCoin())
@@ -138,7 +140,10 @@ class AuthClient(
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
         inSocket.receive(inPacket)
-        val data = EncapsulatedPacketHash(inPacket) //TODO EncapsulatedPacket assumes hmac (version check missing)
+        val data = EncapsulatedPacketHash(inPacket)
+        if (data.version != EncapsulatedPacketHash.VERSION) {
+            throw RuntimeException(/*TODO*/)
+        }
         return when (data.msgType.toInt()) {
             2, 4, 6 -> data
             10 -> throw RuntimeException(/*TODO*/)

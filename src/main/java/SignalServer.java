@@ -1,7 +1,7 @@
 import movies.MoviesRepository;
 import org.jetbrains.annotations.NotNull;
-import secureDatagrams.Settings;
 import sadkdp.auth.AuthServer;
+import secureDatagrams.Settings;
 import users.UsersRepository;
 
 import java.io.FileInputStream;
