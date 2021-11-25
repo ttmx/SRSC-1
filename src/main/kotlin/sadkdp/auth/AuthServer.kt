@@ -140,7 +140,7 @@ class AuthServer(
 
 
 
-        val payloadContent = TicketCredentialsDto.Payload.Content(ep.from.hostAddress, getProxyPort(), "movie", settings, n4 + 1)
+        val payloadContent = TicketCredentialsDto.Payload.Content(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
 
         val proxyPayload = AuthHelper.encrypt(payloadContent, publicKey("proxy"))
         val streamingPayload = AuthHelper.encrypt(payloadContent.copy(nc = random.nextInt()), publicKey("streaming"))
