@@ -39,7 +39,7 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
         outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
-    fun awaitNegotiation(): SecureDatagramSocket {
+    fun awaitNegotiation(): Triple<InetSocketAddress, String, SecureDatagramSocket> {
         val (content, verificationDto) = receiveRequestAndCredentials()
         val (ip, port, movieId, settings, nc) = content
         inSocket.useSettings(settings)
@@ -48,7 +48,7 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
         sendVerification(verificationDto, content)
         val syncInitialFrameDto = receiveAckVerification()
         //sendSyncInitialFrame(syncInitialFrameDto)
-        return outSocket
+        return Triple(InetSocketAddress(ip, port), movieId, outSocket)
     }
 
     private fun sendSyncInitialFrame(ackVerificationDto: Pair<Int, Int>) {

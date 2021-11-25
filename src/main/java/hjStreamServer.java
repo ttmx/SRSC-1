@@ -4,8 +4,10 @@
  * for clients to play in real time the transmitted movies
  */
 
+import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
 import rtstp.RTSTPNegotiatorServer;
+import secureDatagrams.SecureDatagramSocket;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -18,25 +20,22 @@ import java.security.Security;
 class hjStreamServer {
 
     static public void main(String[] args) throws Exception {
-        if (args.length != 3) {
-            System.out.println("Erro, usar: mySend <movie> <ip-multicast-address> <port>");
-            System.out.println("        or: mySend <movie> <ip-unicast-address> <port>");
-            System.exit(-1);
-        }
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         int size;
         int csize = 0;
         int count = 0;
         long time;
-        DataInputStream g = new DataInputStream(new FileInputStream(args[0]));
+
         byte[] buff = new byte[4096];
 
-        DatagramSocket s = new RTSTPNegotiatorServer(
+        Triple<InetSocketAddress, String, SecureDatagramSocket> triple = new RTSTPNegotiatorServer(
                 9997,
                 getKeyStoreFromFile("PKCS12", "config/streaming/streaming.p12", "password")
         ).awaitNegotiation();
-        InetSocketAddress addr = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
+        DatagramSocket s = triple.getThird();
+        DataInputStream g = new DataInputStream(new FileInputStream("config/streaming/movies/" + triple.getSecond() + ".dat"));
+        InetSocketAddress addr = triple.getFirst();
         DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
         long t0 = System.nanoTime(); // Ref. time
         long q0 = 0;

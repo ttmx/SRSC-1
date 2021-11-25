@@ -41,17 +41,24 @@ import java.util.stream.Collectors;
 class hjUDPproxy {
     public static void main(String[] args) throws Exception {
         InputStream inputStream = null;
+        InputStream proxyInputStream = null;
         try {
             inputStream = new FileInputStream("config/proxy/config.properties");
+            proxyInputStream = new FileInputStream("config/proxy/proxy.properties");
         } catch (FileNotFoundException e) {
             System.err.println("Configuration file not found!");
             System.exit(1);
         }
 
-        if(args.length!=4){
-            System.out.println("Usage is `proxy <user> <password> <proxyboxId> <movieName>");
+        if(args.length!=3){
+            System.out.println("Usage is `proxy <user> <password> <movieName>");
+            System.exit(1);
         }
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        Properties proxyProperties = new Properties();
+        proxyProperties.load(proxyInputStream);
+        String proxyBoxId = proxyProperties.getProperty("proxyBoxId");
+
         Properties properties = new Properties();
         properties.load(inputStream);
         String remote = properties.getProperty("remote");
@@ -71,7 +78,7 @@ class hjUDPproxy {
                 parseSocketAddress(signal),
                 getKeyStoreFromFile("PKCS12", "config/proxy/proxy.p12", "password")
         );
-        Triple<TicketCredentialsDto.Payload, byte[], byte[]> streamInfo = auth.getStreamInfo(args[0], args[1], args[2], args[3]);
+        Triple<TicketCredentialsDto.Payload, byte[], byte[]> streamInfo = auth.getStreamInfo(args[0], args[1], proxyBoxId, args[2]);
         DatagramSocket inSocket = new RTSTPNegotiatorClient(streamInfo, parseSocketAddress(properties.getProperty("streaming"))).negotiate();
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
