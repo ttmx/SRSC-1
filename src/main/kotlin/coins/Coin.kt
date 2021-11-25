@@ -50,7 +50,7 @@ data class Coin(
         dsa.verify(issuerHeader.issuerSignature)
 
 
-        pubKey = keyFactory.generatePublic(ECPublicKeySpec(issuerHeader.authHeader.coinPubKey))
+        pubKey = keyFactory.generatePublic(X509EncodedKeySpec(issuerHeader.authHeader.coinPubKey))
 
         toCheck = Json.encodeToString(issuerHeader.authHeader.header).encodeToByteArray()
 

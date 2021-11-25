@@ -7,7 +7,6 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import rtstp.dto.RequestAndCredentialsDto
 import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
-import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.SecureDatagramSocket
 import java.net.DatagramPacket
 import java.net.SocketAddress
@@ -18,6 +17,7 @@ class RTSTPNegotiatorClient(
     private val streamInfo: Triple<TicketCredentialsDto.Payload, ByteArray, ByteArray>,
     private val outSocketAddress: SocketAddress
 ) {
+    private var lastN1: Int? = null
 
     private val inSocket = SecureDatagramSocket(
         streamInfo.component1().settings,
@@ -47,12 +47,16 @@ class RTSTPNegotiatorClient(
     private fun receiveVerification(): Pair<Int, Int> {
         val data = receivePacket()
         val (na1_, na2, verification) = ProtoBuf.decodeFromByteArray<Triple<Int, Int, Boolean>>(data.dataBytes)
+        if (na1_ - 1 != lastN1) {
+            throw RuntimeException("$na1_ - 1 != $lastN1")
+        }
         //TODO verification
         return Pair(na2 + 1, random.nextInt())
     }
 
     private fun sendRequestAndCredentials() {
-        val dto = RequestAndCredentialsDto(streamInfo.second, streamInfo.third, random.nextInt())
+        lastN1 = random.nextInt()
+        val dto = RequestAndCredentialsDto(streamInfo.second, streamInfo.third, lastN1!!)
         sendPacket(dto, 1, outSocketAddress)
     }
 

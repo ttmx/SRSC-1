@@ -26,7 +26,6 @@ data class Settings(
             )
         }
     }
-    //TODO Setup keys
 
     val iv: ByteArray?
         get() = ivHex?.decodeHex()

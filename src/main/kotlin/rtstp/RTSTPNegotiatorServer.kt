@@ -20,6 +20,7 @@ import java.security.SecureRandom
 
 @ExperimentalSerializationApi
 class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
+    private var lastNa2: Int? = null
     private val inSocket = SecureDatagramSocket(port)
     private val outSocket = SecureDatagramSocket()
     private val random = SecureRandom()
@@ -60,7 +61,11 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
     private fun receiveAckVerification() : Pair<Int, Int>{
         val data = receivePacket()
         val (na2_, na3) = ProtoBuf.decodeFromByteArray<Pair<Int, Int>>(data.dataBytes)
-        return Pair(na3 + 1, /*TODO frame*/123)
+        if(na2_-1 != lastNa2){
+            throw RuntimeException()
+        }
+        // No point in sending frame numbers, a random number is good to make equal frames seem different to an attacker
+        return Pair(na3 + 1, random.nextInt())
     }
 
     private fun sendVerification(
@@ -76,7 +81,8 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
         AuthHelper.verify(payload, signature, publicKey("signal"))
         val content = AuthHelper.decrypt<TicketCredentialsDto.Payload>(payload, privateKey())
         val (ip, port, movieId, settings, nc) = content
-        return Pair(content, Triple(nc + 1, random.nextInt(), true))
+        lastNa2 = random.nextInt()
+        return Pair(content, Triple(nc + 1, lastNa2!!, true))
     }
 
     private fun receivePacket(): EncapsulatedPacket {
