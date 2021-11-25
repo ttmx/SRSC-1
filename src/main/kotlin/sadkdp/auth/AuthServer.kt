@@ -2,7 +2,9 @@ package sadkdp.auth
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import movies.Movie
 import movies.MoviesRepository
@@ -11,6 +13,7 @@ import secureDatagrams.CryptoTools
 import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.Settings
 import users.UsersRepository
+import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.DatagramPacket
@@ -130,6 +133,11 @@ class AuthServer(
             throw RuntimeException("$n3_ -1 != $lastN3") //TODO send error
         }
 
+        val k = Json.decodeFromString<ByteArray>(File("config/signal/bankkey.json").readText())
+
+        if (!k.contentEquals(coin.issuerHeader.issuerPublicKey)){
+            throw RuntimeException("Invalid bank issuer key")
+        }
         coin.verifySignature()
         if (coin.value < (lastMovie?.price ?: Int.MAX_VALUE)){
             throw RuntimeException("Coin worth too little")

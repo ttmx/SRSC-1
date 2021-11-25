@@ -47,7 +47,7 @@ fun main() {
         println(Json.encodeToString(hc))
     }
     File("config/proxy/coins.json").writeText(Json.encodeToString(coinList))
-    File("config/signal/bankkey.json").writeText(String(bankPrivKey.encoded))
+    File("config/signal/bankkey.json").writeBytes(bankPublicKey.encoded)
     println(Json.encodeToString(coinList))
 
 }
