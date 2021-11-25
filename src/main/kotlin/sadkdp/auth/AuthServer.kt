@@ -36,6 +36,7 @@ class AuthServer(
     private var lastMovie: Movie? = null
     private val outSocket = DatagramSocket()
     private val random = SecureRandom()
+    private val spentCoins = HashSet<String>()
 
     private var lastN1: Int? = null
     private var lastN3: Int? = null
@@ -147,6 +148,9 @@ class AuthServer(
         AuthHelper.verify(payload, signature1, publicKey("proxy"))
 
         val (n3_, n4, coin) = payload
+        if (spentCoins.contains(coin.coinId)) {
+            throw RuntimeException("$coin.coinId already spent")
+        }
 
         if (n3_ - 1 != lastN3) {
             throw RuntimeException("$n3_ -1 != $lastN3")
@@ -161,7 +165,7 @@ class AuthServer(
         if (coin.value < (lastMovie?.price ?: Int.MAX_VALUE)) {
             throw RuntimeException("Coin worth too little")
         }
-
+        spentCoins.add(coin.coinId)
 
         val payloadContent =
             TicketCredentialsDto.Payload(ep.from.hostAddress, getProxyPort(), lastMovie!!.filmName, settings, n4 + 1)
