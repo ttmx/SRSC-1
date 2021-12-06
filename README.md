@@ -1,7 +1,13 @@
-Signal: no args  
-Streaming: no args  
-Proxy: user password cars  
+To run the program navigate to the root of the repository and run the following commands:
 
-run SignalServer, then hjUDPproxy, then hjStreamServer  
+```bash
+gradlew installDist
 
-run on the root of the repo to fetch the configs correctly
+java -cp "build\install\SRSC-1\lib\*" SignalServer
+
+java -cp "build\install\SRSC-1\lib\*" hjStreamServer
+
+java -cp "build\install\SRSC-1\lib\*" hjUDPproxy user password monsters
+```
+
+Works with Java 15 and above runtimes.
