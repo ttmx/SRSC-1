@@ -32,7 +32,7 @@ class AuthServer(
     private val movies: MoviesRepository,
     private val settings: Settings,
     private val keyStore: KeyStore,
-    private val listenPort: Int
+    listenPort: Int
 ) {
     private var lastMovie: Movie? = null
     private lateinit var socket:DTLSSocket

@@ -11,6 +11,7 @@ import java.io.FileInputStream
 import javax.net.ssl.SSLEngineResult.HandshakeStatus
 import java.lang.Runnable
 import java.net.DatagramPacket
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -137,11 +138,13 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     }
 
     // unwrap received TLS msg types and contents
-    private fun unwrap(): HandshakeStatus {
+    private fun unwrap(): Pair<HandshakeStatus,SocketAddress> {
         val session = engine.session
         val outBuffer = ByteBuffer.allocate(session.packetBufferSize)
-        super.receive(DatagramPacket(outBuffer.array(), 0, outBuffer.capacity()))
-        return engine.unwrap(outBuffer, ByteBuffer.allocate(session.applicationBufferSize)).handshakeStatus
+        val p = DatagramPacket(outBuffer.array(), 0, outBuffer.capacity())
+        super.receive(p)
+        println("Got  ${String(p.data,0,p.length)} in unwrap")
+        return Pair(engine.unwrap(outBuffer, ByteBuffer.allocate(session.applicationBufferSize)).handshakeStatus,p.socketAddress)
     }
 
     // wrap TLS msg types and contents
@@ -150,6 +153,8 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
         val outBuffer = ByteBuffer.allocate(session.packetBufferSize)
         val status = engine.wrap(ByteBuffer.allocate(session.applicationBufferSize), outBuffer).handshakeStatus
         super.send(DatagramPacket(outBuffer.array(), 0, outBuffer.position(), address))
+
+        println("Sent ${String(outBuffer.array(),0,outBuffer.position())} in wrap")
         return status
     }
 
@@ -163,14 +168,18 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     }
 
     // Begin the TLS handshake
-    fun beginHandshake(address: SocketAddress) {
-        engine.beginHandshake()
+    fun beginHandshake(add: SocketAddress?) {
+        var address = add
+        if (engine.handshakeStatus != HandshakeStatus.FINISHED){
+            engine.beginHandshake()
+        }
         var status = engine.handshakeStatus
         while (status != HandshakeStatus.NOT_HANDSHAKING && status != HandshakeStatus.FINISHED) {
+            println("We shaking at $status with $address")
             status = when (status) {
                 HandshakeStatus.NEED_TASK -> runTasks()
-                HandshakeStatus.NEED_WRAP -> wrap(address)
-                HandshakeStatus.NEED_UNWRAP -> unwrap()
+                HandshakeStatus.NEED_WRAP -> wrap(address!!)
+                HandshakeStatus.NEED_UNWRAP -> unwrap().also { address = it.second }.first
                 HandshakeStatus.NEED_UNWRAP_AGAIN -> unwrapAgain()
                 else -> break
             }
@@ -185,6 +194,27 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     // which is possibly not your case ...
     // My protocol handlers here are SRTSPProtocol class or SAPKDPProtocol class
     // ... Anyway you must manage this according to your previous PA#1 implement.
+
+    override fun send(p:DatagramPacket){
+        beginHandshake(p.socketAddress)
+        while (engine.handshakeStatus != HandshakeStatus.FINISHED) {
+            Thread.sleep(100)
+        }
+        encrypt(p)
+        super.send(p)
+    }
+
+    override fun receive(p: DatagramPacket) {
+
+        beginHandshake(null)
+
+
+        while (engine.handshakeStatus != HandshakeStatus.FINISHED) {
+            Thread.sleep(100)
+        }
+        super.receive(p)
+        decrypt(p)
+    }
 
 //    fun send(packet: DatagramPacket?, srtsp: SRTSPProtocol) {
 //        srtsp.createPacket(packet) //SRTSP packet as the DTLS packet payload
@@ -205,7 +235,7 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
 //        // etc ...
 //    }
 
-    //   What of you want to encrypt a DatagramPacket and send over the
+    //   What if you want to encrypt a DatagramPacket and send over the
     //   DTLS Engine  (wrap) ... or to receive an encrypted DatagramPacket
     //   from a DTLS Engine (unwrap)
     private fun encrypt(packet: DatagramPacket) {

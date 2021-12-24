@@ -69,7 +69,7 @@ class hjUDPproxy {
                 .map(hjUDPproxy::parseSocketAddress)
                 .collect(Collectors.toSet());
 
-        System.out.print("Starting proxy server");
+        System.out.println("Starting proxy server");
         AuthClient auth = new AuthClient(
                 new CoinsRepository(),
                 inSocketAddress,

@@ -41,6 +41,7 @@ class AuthClient(
         val p = Properties()
         p.load(inputStream)
         socket = DTLSSocket("config/trustbase.p12","config/proxy/selftls.p12",p,false,inSocketAddress)
+        socket.beginHandshake(outSocketAddress)
 
     }
 
