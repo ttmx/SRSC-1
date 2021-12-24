@@ -7,7 +7,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import rtstp.dto.RequestAndCredentialsDto
 import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
-import secureDatagrams.SecureDatagramSocket
+import secureDatagrams.SecureRTSTPSocket
 import java.net.DatagramPacket
 import java.net.SocketAddress
 import java.security.SecureRandom
@@ -19,11 +19,11 @@ class RTSTPNegotiatorClient(
 ) {
     private var lastN1: Int? = null
 
-    private val inSocket = SecureDatagramSocket(
+    private val inSocket = SecureRTSTPSocket(
         streamInfo.component1().settings,
         streamInfo.component1().port
     )
-    private val outSocket = SecureDatagramSocket(streamInfo.component1().settings)
+    private val outSocket = SecureRTSTPSocket(streamInfo.component1().settings)
     private val random = SecureRandom()
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
@@ -31,7 +31,7 @@ class RTSTPNegotiatorClient(
         outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
-    fun negotiate(): SecureDatagramSocket {
+    fun negotiate(): SecureRTSTPSocket {
         sendRequestAndCredentials()
         val ackVerificationDto = receiveVerification()
         sendAckVerification(ackVerificationDto)

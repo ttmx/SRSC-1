@@ -10,7 +10,7 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 
-class SecureDatagramSocket : DatagramSocket {
+class SecureRTSTPSocket : DatagramSocket {
 
     private lateinit var encryptCipher: Cipher
     private lateinit var decryptCipher: Cipher

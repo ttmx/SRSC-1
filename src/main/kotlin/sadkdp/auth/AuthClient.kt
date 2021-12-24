@@ -8,7 +8,9 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
+import secureDatagrams.DTLSSocket
 import secureDatagrams.EncapsulatedPacketHash
+import java.io.FileInputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
@@ -17,6 +19,7 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -30,9 +33,16 @@ class AuthClient(
     private val keyStore: KeyStore
 ) {
     private var lastN2: Int? = null
-    private val inSocket = DatagramSocket(inSocketAddress)
-    private val outSocket = DatagramSocket()
+    private val socket :DTLSSocket
     private val random = SecureRandom()
+
+    init {
+        val inputStream = FileInputStream("config/proxy/dtls.properties")
+        val p = Properties()
+        p.load(inputStream)
+        socket = DTLSSocket("config/trustbase.p12","config/proxy/selftls.p12",p,false,inSocketAddress)
+
+    }
 
     private fun publicKey(alias: String): PublicKey {
         return keyStore.getCertificate(alias).publicKey
@@ -45,7 +55,7 @@ class AuthClient(
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
-        outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
+        socket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
     fun getStreamInfo(
@@ -61,12 +71,12 @@ class AuthClient(
             val paymentRequest = receivePaymentRequest()
             sendPayment(paymentRequest)
             val ticketCredentials = receiveTicketCredentials()
-            inSocket.close()
+            socket.close()
             return ticketCredentials
         } catch (e: Exception) {
             val error = (e.message ?: "Unknown Error").toByteArray()
             val ep = EncapsulatedPacketHash(error, error.size, 9)
-            outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+            socket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
             throw e
         }
     }
@@ -77,7 +87,7 @@ class AuthClient(
             .put(CryptoTools.makeHeader(EncapsulatedPacketHash.VERSION, 1, helloDto.size.toShort()))
             .put(helloDto)
             .array()
-        outSocket.send(DatagramPacket(packet, packet.size, outSocketAddress))
+        socket.send(DatagramPacket(packet, packet.size, outSocketAddress))
     }
 
     private fun receiveAuthenticationRequest(): AuthenticationRequestDto {
@@ -105,7 +115,7 @@ class AuthClient(
             ProtoBuf.encodeToByteArray(AuthenticationDto(n1 + 1, lastN2!!, movieId))
         )
         val ep = EncapsulatedPacketHash(out, out.size, 3)
-        outSocket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
+        socket.send(DatagramPacket(ep.data, ep.data.size, outSocketAddress))
     }
 
     private fun receivePaymentRequest(): PaymentRequestDto.Payload {
@@ -145,7 +155,7 @@ class AuthClient(
     private fun receivePacket(): EncapsulatedPacketHash {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
-        inSocket.receive(inPacket)
+        socket.receive(inPacket)
         val data = EncapsulatedPacketHash(inPacket)
         if (data.version != EncapsulatedPacketHash.VERSION) {
             throw RuntimeException("Wrong Packet Version")

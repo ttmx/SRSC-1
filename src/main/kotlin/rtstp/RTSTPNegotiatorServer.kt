@@ -8,7 +8,7 @@ import rtstp.dto.RequestAndCredentialsDto
 import sadkdp.auth.AuthHelper
 import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
-import secureDatagrams.SecureDatagramSocket
+import secureDatagrams.SecureRTSTPSocket
 import java.net.DatagramPacket
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -20,8 +20,8 @@ import java.security.SecureRandom
 @ExperimentalSerializationApi
 class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
     private var lastNa2: Int? = null
-    private val inSocket = SecureDatagramSocket(port)
-    private val outSocket = SecureDatagramSocket()
+    private val inSocket = SecureRTSTPSocket(port)
+    private val outSocket = SecureRTSTPSocket()
     private val random = SecureRandom()
     private lateinit var outSocketAddress: SocketAddress;
 
@@ -39,7 +39,7 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
         outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
-    fun awaitNegotiation(): Triple<InetSocketAddress, String, SecureDatagramSocket> {
+    fun awaitNegotiation(): Triple<InetSocketAddress, String, SecureRTSTPSocket> {
         val (content, verificationDto) = receiveRequestAndCredentials()
         val (ip, port, movieId, settings, _) = content
         inSocket.useSettings(settings)

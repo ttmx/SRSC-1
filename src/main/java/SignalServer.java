@@ -18,14 +18,8 @@ public class SignalServer {
 
     public static void main(String[] args) throws Exception {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        DatagramSocket inSocket = new DatagramSocket(getPort());
         AuthServer authServer = getAuthServer();
-        byte[] buff = new byte[4096];
-        while (true) {
-            DatagramPacket p = new DatagramPacket(buff, buff.length);
-            inSocket.receive(p);
-            authServer.processMessage(p);
-        }
+        authServer.startLoop();
     }
 
     private static int getPort() throws IOException {
@@ -47,7 +41,8 @@ public class SignalServer {
         MoviesRepository movies = new MoviesRepository("config/signal/movies.json");
         Settings settings = Settings.Companion.getSettingsFromFile("signal");
         KeyStore keyStore = getKeyStoreFromFile("PKCS12", "config/signal/signal.p12", "password");
-        return new AuthServer(users, movies, settings, keyStore);
+        int listenPort = getPort();
+        return new AuthServer(users, movies, settings, keyStore,listenPort);
     }
 
     @NotNull

@@ -10,6 +10,7 @@ import movies.Movie
 import movies.MoviesRepository
 import sadkdp.dto.*
 import secureDatagrams.CryptoTools
+import secureDatagrams.DTLSSocket
 import secureDatagrams.EncapsulatedPacketHash
 import secureDatagrams.Settings
 import users.UsersRepository
@@ -17,7 +18,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.DatagramPacket
-import java.net.DatagramSocket
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.*
@@ -31,17 +31,35 @@ class AuthServer(
     private val users: UsersRepository,
     private val movies: MoviesRepository,
     private val settings: Settings,
-    private val keyStore: KeyStore
+    private val keyStore: KeyStore,
+    private val listenPort: Int
 ) {
     private var lastMovie: Movie? = null
-    private val outSocket = DatagramSocket()
+    private lateinit var socket:DTLSSocket
     private val random = SecureRandom()
     private val spentCoins = HashSet<String>()
 
     private var lastN1: Int? = null
     private var lastN3: Int? = null
 
-    fun processMessage(p: DatagramPacket) {
+    init {
+
+        val inputStream = FileInputStream("config/signal/dtls.properties")
+        val p = Properties()
+        p.load(inputStream)
+        socket = DTLSSocket("config/trustbase.p12","config/signal/selftls.p12",p,true,InetSocketAddress("localhost",listenPort))
+
+    }
+    fun startLoop(){
+        val buff = ByteArray(4096)
+        while (true) {
+            val p = DatagramPacket(buff, buff.size)
+            socket.receive(p)
+            processMessage(p)
+        }
+    }
+
+    private fun processMessage(p: DatagramPacket) {
         val socketAddress = InetSocketAddress(p.address, getProxyPort())
         try {
             val ep = EncapsulatedPacketHash(p)
@@ -61,7 +79,7 @@ class AuthServer(
         } catch (e: Exception) {
             val error = (e.message ?: "Unknown Error").toByteArray()
             val ep = EncapsulatedPacketHash(error, error.size, 10)
-            outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
+            socket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
             throw e
         }
     }
@@ -85,7 +103,7 @@ class AuthServer(
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
         val ep = EncapsulatedPacketHash(toSend, toSend.size, msgType)
-        outSocket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
+        socket.send(DatagramPacket(ep.data, ep.data.size, socketAddress))
     }
 
     private fun decodeHello(ep: EncapsulatedPacketHash): HelloDto {

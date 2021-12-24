@@ -3,47 +3,59 @@ package secureDatagrams
 import java.net.SocketAddress
 import java.net.DatagramSocket
 import javax.net.ssl.SSLEngine
-import kotlin.Throws
-import java.security.KeyStoreException
-import java.security.NoSuchAlgorithmException
-import java.io.IOException
-import java.security.UnrecoverableKeyException
-import java.security.KeyManagementException
 import javax.net.ssl.SSLContext
-import secureDatagrams.DTLSSocket
 import java.security.KeyStore
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.TrustManagerFactory
 import java.io.FileInputStream
 import javax.net.ssl.SSLEngineResult.HandshakeStatus
 import java.lang.Runnable
-import javax.net.ssl.SSLSession
 import java.net.DatagramPacket
 import java.nio.ByteBuffer
-import java.security.cert.CertificateException
 import java.util.*
-import javax.net.ssl.SSLException
 
 // This is a reference / suggestion or guideline showing the
 // principle for an implementation of a DTLS Socket, to be used
 // for general purpose DTLS support over Datagram Sockets (UDP)
 // You wil need some imports ... not very different from the TLS/TCP case
-class DTLSSocket(certificatesConfig: Properties, dtlsConfig: Properties, is_server: Boolean, address: SocketAddress) :
+class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, dtlsConfig: Properties, is_server: Boolean, address: SocketAddress) :
     DatagramSocket(address) {
     private val engine // The SSLEngine
             : SSLEngine
 
+
+
+    init {
+
+        // for the following configs, take a look on exemplified
+        // dtls config files ... Possibly you have other interesting
+        // config support - json, xml or whatever ... would be great ;-)
+        val protocol = dtlsConfig.getProperty("TLS-PROT-ENF")
+        engine = createSSLContext().createSSLEngine()
+        if (is_server) //server endpoint
+            setServerAuth(dtlsConfig.getProperty("TLS-AUTH")) else  // client endpoint
+            setProxyAuth(dtlsConfig.getProperty("TLS-AUTH"))
+
+        // and for both ... In this way I have a common way to
+        // have common enabled ciphersuites for sure ...
+        // But you can decide to try with different csuites for each side
+        // but don't forget ... ou must have something in common
+        // The same for protocol versions you want to enable
+        engine.enabledCipherSuites = dtlsConfig.getProperty("CIPHERSUITES").split(",").toTypedArray()
+        engine.enabledProtocols = arrayOf(protocol)
+    }
+
     // Now let's go to make the SSL context (w/ SSL Context class)
     // See JSSE Docs and class slides
-    private fun createSSLContext(config: Properties): SSLContext {
+    private fun createSSLContext(): SSLContext {
 
         // Need a SSLContext for DTLS (see above)
         val sslContext = SSLContext.getInstance(SSL_CONTEXT)
 
         // Keystores and trusted stores that will be used according to
         // the required configurations ...
-        val ksKeys = KeyStore.getInstance("JKS")
-        val ksTrust = KeyStore.getInstance("JKS")
+        val ksKeys = KeyStore.getInstance("PKCS12")
+        val ksTrust = KeyStore.getInstance("PKCS12")
         val kmf = KeyManagerFactory.getInstance("SunX509")
         val tmf = TrustManagerFactory.getInstance("SunX509")
 
@@ -54,15 +66,16 @@ class DTLSSocket(certificatesConfig: Properties, dtlsConfig: Properties, is_serv
         // Of course you can also manage this in a different way - ex.,
         // passing the keystores etc ... as properties for the JVM runtime
         // as you can see in Lab examples using TLS / TCP (SSLSockets)
+        //TODO hardcoded keys?
         ksKeys.load(
-            FileInputStream(config.getProperty("key_store_path")),
-            config.getProperty("key_store_pass").toCharArray()
+            FileInputStream(ksKeysPath),
+            "password".toCharArray()
         )
         ksTrust.load(
-            FileInputStream(config.getProperty("trust_store_path")),
-            config.getProperty("trust_store_pass").toCharArray()
+            FileInputStream(ksTrustPath),
+            "password".toCharArray()
         )
-        kmf.init(ksKeys, config.getProperty("key_entry_pass").toCharArray())
+        kmf.init(ksKeys, "password".toCharArray())
         tmf.init(ksTrust)
         sslContext.init(kmf.keyManagers, tmf.trustManagers, null)
 
@@ -173,24 +186,24 @@ class DTLSSocket(certificatesConfig: Properties, dtlsConfig: Properties, is_serv
     // My protocol handlers here are SRTSPProtocol class or SAPKDPProtocol class
     // ... Anyway you must manage this according to your previous PA#1 implement.
 
-    fun send(packet: DatagramPacket?, srtsp: SRTSPProtocol) {
-        srtsp.createPacket(packet) //SRTSP packet as the DTLS packet payload
-        super.send(packet)
-    }
-
-    fun receive(packet: DatagramPacket?, srtsp: SRTSPProtocol?) {
-        // etc ...
-    }
-
-    fun send(packet: DatagramPacket?, sapkdp: SAPKDPProtocol) {
-        sapkdp.createPacket(packet) //SAPKDP packet as the DTLS packet payload
-        super.send(packet)
-    }
-
-    fun receive(packet: DatagramPacket?, ssp: SSPProtocol?) {
-
-        // etc ...
-    }
+//    fun send(packet: DatagramPacket?, srtsp: SRTSPProtocol) {
+//        srtsp.createPacket(packet) //SRTSP packet as the DTLS packet payload
+//        super.send(packet)
+//    }
+//
+//    fun receive(packet: DatagramPacket?, srtsp: SRTSPProtocol?) {
+//        // etc ...
+//    }
+//
+//    fun send(packet: DatagramPacket?, sapkdp: SAPKDPProtocol) {
+//        sapkdp.createPacket(packet) //SAPKDP packet as the DTLS packet payload
+//        super.send(packet)
+//    }
+//
+//    fun receive(packet: DatagramPacket?, ssp: SSPProtocol?) {
+//
+//        // etc ...
+//    }
 
     //   What of you want to encrypt a DatagramPacket and send over the
     //   DTLS Engine  (wrap) ... or to receive an encrypted DatagramPacket
@@ -227,23 +240,5 @@ class DTLSSocket(certificatesConfig: Properties, dtlsConfig: Properties, is_serv
         private const val SSL_CONTEXT = "DTLS"
     }
 
-    init {
 
-        // for the following configs, take a look on exemplified
-        // dtls config files ... Possibly you have other interesting
-        // config support - json, xml or whatever ... would be great ;-)
-        val protocol = dtlsConfig.getProperty("TLS-PROT-ENF")
-        engine = createSSLContext(certificatesConfig).createSSLEngine()
-        if (is_server) //server endpoint
-            setServerAuth(dtlsConfig.getProperty("TLS-AUTH")) else  // client endpoint
-            setProxyAuth(dtlsConfig.getProperty("TLS-AUTH"))
-
-        // and for both ... In this way I have a common way to
-        // have common enabled ciphersuites for sure ...
-        // But you can decide to try with different csuites for each side
-        // but don't forget ... ou must have something in common
-        // The same for protocol versions you want to enable
-        engine.enabledCipherSuites = dtlsConfig.getProperty("CIPHERSUITES").split(",").toTypedArray()
-        engine.enabledProtocols = arrayOf(protocol)
-    }
 }

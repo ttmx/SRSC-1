@@ -7,7 +7,7 @@
 import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
 import rtstp.RTSTPNegotiatorServer;
-import secureDatagrams.SecureDatagramSocket;
+import secureDatagrams.SecureRTSTPSocket;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -29,7 +29,7 @@ class hjStreamServer {
 
         byte[] buff = new byte[4096];
 
-        Triple<InetSocketAddress, String, SecureDatagramSocket> triple = new RTSTPNegotiatorServer(
+        Triple<InetSocketAddress, String, SecureRTSTPSocket> triple = new RTSTPNegotiatorServer(
                 9997,
                 getKeyStoreFromFile("PKCS12", "config/streaming/streaming.p12", "password")
         ).awaitNegotiation();
