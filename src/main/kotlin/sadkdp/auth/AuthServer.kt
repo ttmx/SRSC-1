@@ -35,7 +35,7 @@ class AuthServer(
     listenPort: Int
 ) {
     private var lastMovie: Movie? = null
-    private lateinit var socket:DTLSSocket
+    private var socket:DTLSSocket
     private val random = SecureRandom()
     private val spentCoins = HashSet<String>()
 
@@ -48,6 +48,8 @@ class AuthServer(
         val p = Properties()
         p.load(inputStream)
         socket = DTLSSocket("config/trustbase.p12","config/signal/selftls.p12",p,true,InetSocketAddress("localhost",listenPort))
+        socket.doHandshake(null)
+//        Thread.sleep(6000)
 
     }
     fun startLoop(){

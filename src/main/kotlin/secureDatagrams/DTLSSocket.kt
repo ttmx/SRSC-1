@@ -1,29 +1,32 @@
 package secureDatagrams
 
-import java.net.SocketAddress
-import java.net.DatagramSocket
-import javax.net.ssl.SSLEngine
-import javax.net.ssl.SSLContext
-import java.security.KeyStore
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.TrustManagerFactory
 import java.io.FileInputStream
-import javax.net.ssl.SSLEngineResult.HandshakeStatus
-import java.lang.Runnable
 import java.net.DatagramPacket
-import java.net.InetSocketAddress
+import java.net.DatagramSocket
+import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.security.KeyStore
 import java.util.*
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLEngineResult.HandshakeStatus
+import javax.net.ssl.TrustManagerFactory
 
 // This is a reference / suggestion or guideline showing the
 // principle for an implementation of a DTLS Socket, to be used
 // for general purpose DTLS support over Datagram Sockets (UDP)
 // You wil need some imports ... not very different from the TLS/TCP case
-class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, dtlsConfig: Properties, is_server: Boolean, address: SocketAddress) :
+class DTLSSocket(
+    private val ksTrustPath: String,
+    private val ksKeysPath: String,
+    dtlsConfig: Properties,
+    is_server: Boolean,
+    address: SocketAddress
+) :
     DatagramSocket(address) {
     private val engine // The SSLEngine
             : SSLEngine
-
 
 
     init {
@@ -43,7 +46,7 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
         // But you can decide to try with different csuites for each side
         // but don't forget ... ou must have something in common
         // The same for protocol versions you want to enable
-        engine.enabledCipherSuites = dtlsConfig.getProperty("CIPHERSUITES").split(",").toTypedArray()
+        engine.enabledCipherSuites = dtlsConfig.getProperty("ciphersuites").split(",").toTypedArray()
         engine.enabledProtocols = arrayOf(protocol)
     }
 
@@ -139,18 +142,18 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     }
 
     // unwrap received TLS msg types and contents
-    private fun unwrap(): Pair<HandshakeStatus,SocketAddress> {
+    private fun unwrap(): Pair<HandshakeStatus, SocketAddress> {
         val session = engine.session
         val outBuffer = ByteBuffer.allocate(session.packetBufferSize)
         val p = DatagramPacket(outBuffer.array(), 0, outBuffer.capacity())
         super.receive(p)
-        println("Got  ${String(p.data,0,p.length)} in unwrap")
+//        println("Got  ${String(p.data,0,p.length)} in unwrap")
         val bb = ByteBuffer.allocate(session.applicationBufferSize)
         val k = engine.unwrap(outBuffer, bb)
 
-        println(k.status)
+//        println(k.status)
 //        println("Got  ${String(bb.array(),0,p.length)} in unwrap")
-        return Pair(k.handshakeStatus,p.socketAddress)
+        return Pair(k.handshakeStatus, p.socketAddress)
     }
 
     // wrap TLS msg types and contents
@@ -161,8 +164,8 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
         val status = s.handshakeStatus
         super.send(DatagramPacket(outBuffer.array(), 0, outBuffer.position(), address))
 
-        println("Sent ${String(outBuffer.array(),0,outBuffer.position())} in wrap")
-        println(s.status)
+//        println("Sent ${String(outBuffer.array(),0,outBuffer.position())} in wrap")
+//        println(s.status)
         return status
     }
 
@@ -176,10 +179,12 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     }
 
     // Begin the TLS handshake
-    fun beginHandshake(add: SocketAddress?) {
+    fun doHandshake(add: SocketAddress?) {
         var address = add
-        if (engine.handshakeStatus != HandshakeStatus.FINISHED){
+        if (engine.handshakeStatus != HandshakeStatus.FINISHED) {
             engine.beginHandshake()
+        } else {
+            return
         }
         var status = engine.handshakeStatus
         while (status != HandshakeStatus.NOT_HANDSHAKING && status != HandshakeStatus.FINISHED) {
@@ -192,6 +197,7 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
                 else -> break
             }
         }
+        println("Finished shaking")
     }
 
     // Now is up to you ... and your previous protocols you have for
@@ -203,25 +209,45 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     // My protocol handlers here are SRTSPProtocol class or SAPKDPProtocol class
     // ... Anyway you must manage this according to your previous PA#1 implement.
 
-    override fun send(p:DatagramPacket){
-        beginHandshake(p.socketAddress)
-        while (engine.handshakeStatus != HandshakeStatus.FINISHED) {
-            Thread.sleep(100)
-        }
+    override fun send(p: DatagramPacket) {
+//        beginHandshake(p.socketAddress)
+//        while (engine.handshakeStatus != HandshakeStatus.FINISHED &&
+//            engine.handshakeStatus != HandshakeStatus.NOT_HANDSHAKING &&
+//            !engine.isInboundDone &&
+//            !engine.isOutboundDone
+//        ) {
+//            Thread.sleep(100)
+//            println("send loop")
+//        }
+
+        println("Sent ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         encrypt(p)
+
+        println("SentEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         super.send(p)
     }
 
     override fun receive(p: DatagramPacket) {
-
-        beginHandshake(null)
-
-
-        while (engine.handshakeStatus != HandshakeStatus.FINISHED) {
-            Thread.sleep(100)
+//        beginHandshake(null)
+//        while (engine.handshakeStatus != HandshakeStatus.FINISHED &&
+//            engine.handshakeStatus != HandshakeStatus.NOT_HANDSHAKING &&
+//            !engine.isInboundDone &&
+//            !engine.isOutboundDone
+//        ) {
+//            Thread.sleep(100)
+//            println("recv loop")
+//        }
+        var ctHash:Int? = null
+        var ptHash:Int? = null
+        // if data wasn't actually decrypted, get a new block, it was probably tls garbage
+        while (ctHash == ptHash) {
+            super.receive(p)
+            ctHash = p.data.contentHashCode()
+            println("RecvEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
+            decrypt(p)
+            ptHash = p.data.contentHashCode()
+            println("Recv ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         }
-        super.receive(p)
-        decrypt(p)
     }
 
 //    fun send(packet: DatagramPacket?, srtsp: SRTSPProtocol) {

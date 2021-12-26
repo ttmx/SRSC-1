@@ -1,5 +1,6 @@
 import secureDatagrams.DTLSSocket
 import java.io.FileInputStream
+import java.net.DatagramPacket
 import java.net.InetSocketAddress
 import java.util.*
 
@@ -11,7 +12,12 @@ fun main(args: Array<String>) {
         p.load(inputStream)
         s = DTLSSocket("config/trustbase.p12", "config/proxy/selftls.p12", p, false, InetSocketAddress(4433))
 
-        s.beginHandshake(InetSocketAddress("localhost", 4434))
+        val dp = DatagramPacket(ByteArray(30000), 30000)
+        s.doHandshake(InetSocketAddress("localhost", 4434))
+        s.receive(dp);
+        s.receive(dp);
+        s.receive(dp);
+        s.receive(dp);
     } else {
 
         val inputStream = FileInputStream("config/signal/dtls.properties")
@@ -19,7 +25,8 @@ fun main(args: Array<String>) {
         p.load(inputStream)
         s = DTLSSocket("config/trustbase.p12", "config/signal/selftls.p12", p, true, InetSocketAddress(4434))
 
-        s.beginHandshake(InetSocketAddress("localhost", 4433))
+        s.doHandshake(InetSocketAddress("localhost", 4433))
+
     }
 
 }

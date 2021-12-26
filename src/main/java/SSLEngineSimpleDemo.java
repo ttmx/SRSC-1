@@ -116,7 +116,7 @@ public class SSLEngineSimpleDemo {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
         tmf.init(ts);
 
-        SSLContext sslCtx = SSLContext.getInstance("TLS");
+        SSLContext sslCtx = SSLContext.getInstance("DTLS");
 
         sslCtx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
@@ -157,8 +157,8 @@ public class SSLEngineSimpleDemo {
          * to write to the output pipe, we could reallocate a larger
          * pipe, but instead we wait for the peer to drain it.
          */
-        while (!isEngineClosed(clientEngine) ||
-                !isEngineClosed(serverEngine)) {
+        while (isEngineOpen(clientEngine) ||
+                isEngineOpen(serverEngine)) {
 
             log("================");
 
@@ -293,8 +293,8 @@ public class SSLEngineSimpleDemo {
         }
     }
 
-    private static boolean isEngineClosed(SSLEngine engine) {
-        return (engine.isOutboundDone() && engine.isInboundDone());
+    private static boolean isEngineOpen(SSLEngine engine) {
+        return (!engine.isOutboundDone() || !engine.isInboundDone());
     }
 
     /*

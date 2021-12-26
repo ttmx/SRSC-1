@@ -12,7 +12,6 @@ import secureDatagrams.DTLSSocket
 import secureDatagrams.EncapsulatedPacketHash
 import java.io.FileInputStream
 import java.net.DatagramPacket
-import java.net.DatagramSocket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.security.KeyStore
@@ -33,15 +32,16 @@ class AuthClient(
     private val keyStore: KeyStore
 ) {
     private var lastN2: Int? = null
-    private val socket :DTLSSocket
+    private val socket: DTLSSocket
     private val random = SecureRandom()
 
     init {
         val inputStream = FileInputStream("config/proxy/dtls.properties")
         val p = Properties()
         p.load(inputStream)
-        socket = DTLSSocket("config/trustbase.p12","config/proxy/selftls.p12",p,false,inSocketAddress)
-        socket.beginHandshake(outSocketAddress)
+        socket = DTLSSocket("config/trustbase.p12", "config/proxy/selftls.p12", p, false, inSocketAddress)
+        socket.doHandshake(outSocketAddress)
+//        Thread.sleep(6000)
 
     }
 
@@ -156,7 +156,10 @@ class AuthClient(
     private fun receivePacket(): EncapsulatedPacketHash {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
-        socket.receive(inPacket)
+        // Hack because we might get weird ssl packets for unknown reasons, but that aren't needed for key exchange
+//        while ((inPacket.data[0].toInt() ushr 4).toByte() != EncapsulatedPacketHash.VERSION) {
+            socket.receive(inPacket)
+//        }
         val data = EncapsulatedPacketHash(inPacket)
         if (data.version != EncapsulatedPacketHash.VERSION) {
             throw RuntimeException("Wrong Packet Version")
