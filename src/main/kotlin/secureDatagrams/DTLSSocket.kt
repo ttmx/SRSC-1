@@ -31,11 +31,12 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
         // for the following configs, take a look on exemplified
         // dtls config files ... Possibly you have other interesting
         // config support - json, xml or whatever ... would be great ;-)
-        val protocol = dtlsConfig.getProperty("TLS-PROT-ENF")
+        println("DTLS Config: $dtlsConfig")
+        val protocol = dtlsConfig.getProperty("tlsVersion")
         engine = createSSLContext().createSSLEngine()
         if (is_server) //server endpoint
-            setServerAuth(dtlsConfig.getProperty("TLS-AUTH")) else  // client endpoint
-            setProxyAuth(dtlsConfig.getProperty("TLS-AUTH"))
+            setServerAuth(dtlsConfig.getProperty("authentication")) else  // client endpoint
+            setProxyAuth(dtlsConfig.getProperty("authentication"))
 
         // and for both ... In this way I have a common way to
         // have common enabled ciphersuites for sure ...
@@ -130,9 +131,9 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
     // Now the remaining is the "conventional" code from the DTLS-enabled
     // handshake ... See the JSSE Documentation ...
     private fun runTasks(): HandshakeStatus {
-        var runnable: Runnable
+        var runnable: Runnable?
         while (engine.delegatedTask.also { runnable = it } != null) {
-            runnable.run()
+            runnable?.run()
         }
         return engine.handshakeStatus
     }
@@ -144,17 +145,24 @@ class DTLSSocket(private val ksTrustPath: String,private val ksKeysPath:String, 
         val p = DatagramPacket(outBuffer.array(), 0, outBuffer.capacity())
         super.receive(p)
         println("Got  ${String(p.data,0,p.length)} in unwrap")
-        return Pair(engine.unwrap(outBuffer, ByteBuffer.allocate(session.applicationBufferSize)).handshakeStatus,p.socketAddress)
+        val bb = ByteBuffer.allocate(session.applicationBufferSize)
+        val k = engine.unwrap(outBuffer, bb)
+
+        println(k.status)
+//        println("Got  ${String(bb.array(),0,p.length)} in unwrap")
+        return Pair(k.handshakeStatus,p.socketAddress)
     }
 
     // wrap TLS msg types and contents
     private fun wrap(address: SocketAddress): HandshakeStatus {
         val session = engine.session
         val outBuffer = ByteBuffer.allocate(session.packetBufferSize)
-        val status = engine.wrap(ByteBuffer.allocate(session.applicationBufferSize), outBuffer).handshakeStatus
+        val s = engine.wrap(ByteBuffer.allocate(session.applicationBufferSize), outBuffer)
+        val status = s.handshakeStatus
         super.send(DatagramPacket(outBuffer.array(), 0, outBuffer.position(), address))
 
         println("Sent ${String(outBuffer.array(),0,outBuffer.position())} in wrap")
+        println(s.status)
         return status
     }
 
