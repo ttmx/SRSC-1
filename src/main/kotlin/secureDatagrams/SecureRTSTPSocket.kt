@@ -13,13 +13,27 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 
-class SecureRTSTPSocket : DTLSSocket {
+class SecureRTSTPSocket(
+    settings: Settings?,
+    ksTrustPath: String,
+    ksKeysPath: String,
+    dtlsConfig: Properties,
+    is_server: Boolean,
+    address: SocketAddress
+) : DTLSSocket(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address) {
 
     private lateinit var encryptCipher: Cipher
     private lateinit var decryptCipher: Cipher
     private lateinit var key: SecretKey
     private lateinit var hMac: Mac
     private lateinit var sett: Settings
+
+
+    init {
+        if (settings != null) {
+            useSettings(settings)
+        }
+    }
 
 //    constructor(
 //
@@ -49,20 +63,6 @@ class SecureRTSTPSocket : DTLSSocket {
 //        ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address) {
 //        useSettings(settings)
 //    }
-
-    constructor(
-        settings: Settings?,
-        ksTrustPath: String,
-        ksKeysPath: String,
-        dtlsConfig: Properties,
-        is_server: Boolean,
-        address: SocketAddress
-    ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address) {
-
-        if (settings != null) {
-            useSettings(settings)
-        }
-    }
 
     fun useSettings(settings: Settings) {
         sett = settings
@@ -140,4 +140,5 @@ class SecureRTSTPSocket : DTLSSocket {
             p.length = decryptCipher.doFinal(ep.dataBytes, 0, ep.len.toInt(), p.data)
         }
     }
+
 }

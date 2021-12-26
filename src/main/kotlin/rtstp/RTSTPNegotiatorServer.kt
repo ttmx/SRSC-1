@@ -60,7 +60,7 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
         val (content, verificationDto) = receiveRequestAndCredentials()
         val (ip, port, movieId, settings, _) = content
         this.socket.useSettings(settings)
-        outSocketAddress = InetSocketAddress(ip, port)//TODO Test if change port breaks
+        outSocketAddress = InetSocketAddress(ip, port)
         sendVerification(verificationDto)
         receiveAckVerification()
         return Triple(InetSocketAddress(ip, port), movieId, this.socket)

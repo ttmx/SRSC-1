@@ -44,7 +44,6 @@ open class DTLSSocket//server endpoint
     }
 
 
-
     // Now let's go to make the SSL context (w/ SSL Context class)
     // See JSSE Docs and class slides
     private fun createSSLContext(): SSLContext {
@@ -205,16 +204,6 @@ open class DTLSSocket//server endpoint
     // ... Anyway you must manage this according to your previous PA#1 implement.
 
     override fun send(p: DatagramPacket) {
-//        beginHandshake(p.socketAddress)
-//        while (engine.handshakeStatus != HandshakeStatus.FINISHED &&
-//            engine.handshakeStatus != HandshakeStatus.NOT_HANDSHAKING &&
-//            !engine.isInboundDone &&
-//            !engine.isOutboundDone
-//        ) {
-//            Thread.sleep(100)
-//            println("send loop")
-//        }
-
 //        println("Sent ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         encrypt(p)
 
@@ -223,17 +212,8 @@ open class DTLSSocket//server endpoint
     }
 
     override fun receive(p: DatagramPacket) {
-//        beginHandshake(null)
-//        while (engine.handshakeStatus != HandshakeStatus.FINISHED &&
-//            engine.handshakeStatus != HandshakeStatus.NOT_HANDSHAKING &&
-//            !engine.isInboundDone &&
-//            !engine.isOutboundDone
-//        ) {
-//            Thread.sleep(100)
-//            println("recv loop")
-//        }
-        var ctHash:Int? = null
-        var ptHash:Int? = null
+        var ctHash: Int? = null
+        var ptHash: Int? = null
         // if data wasn't actually decrypted, get a new block, it was probably tls garbage
         while (ctHash == ptHash) {
             super.receive(p)
@@ -244,25 +224,6 @@ open class DTLSSocket//server endpoint
 //            println("Recv ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         }
     }
-
-//    fun send(packet: DatagramPacket?, srtsp: SRTSPProtocol) {
-//        srtsp.createPacket(packet) //SRTSP packet as the DTLS packet payload
-//        super.send(packet)
-//    }
-//
-//    fun receive(packet: DatagramPacket?, srtsp: SRTSPProtocol?) {
-//        // etc ...
-//    }
-//
-//    fun send(packet: DatagramPacket?, sapkdp: SAPKDPProtocol) {
-//        sapkdp.createPacket(packet) //SAPKDP packet as the DTLS packet payload
-//        super.send(packet)
-//    }
-//
-//    fun receive(packet: DatagramPacket?, ssp: SSPProtocol?) {
-//
-//        // etc ...
-//    }
 
     //   What if you want to encrypt a DatagramPacket and send over the
     //   DTLS Engine  (wrap) ... or to receive an encrypted DatagramPacket
@@ -298,7 +259,6 @@ open class DTLSSocket//server endpoint
         private const val SERVER = "SSERVER" //server side
         private const val SSL_CONTEXT = "DTLS"
     }
-
 
 
 }
