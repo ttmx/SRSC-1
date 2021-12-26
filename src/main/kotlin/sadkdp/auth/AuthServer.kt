@@ -47,7 +47,11 @@ class AuthServer(
         val inputStream = FileInputStream("config/signal/dtls.properties")
         val p = Properties()
         p.load(inputStream)
-        socket = DTLSSocket("config/trustbase.p12","config/signal/selftls.p12",p,true,InetSocketAddress("localhost",listenPort))
+        socket = DTLSSocket("config/trustbase.p12",
+            "config/signal/selftls.p12",
+            p,
+            true,
+            InetSocketAddress(listenPort))
         socket.doHandshake(null)
 //        Thread.sleep(6000)
 

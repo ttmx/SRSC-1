@@ -17,7 +17,9 @@ import javax.net.ssl.TrustManagerFactory
 // principle for an implementation of a DTLS Socket, to be used
 // for general purpose DTLS support over Datagram Sockets (UDP)
 // You wil need some imports ... not very different from the TLS/TCP case
-class DTLSSocket(
+open class DTLSSocket//server endpoint
+// client endpoint
+    (
     private val ksTrustPath: String,
     private val ksKeysPath: String,
     dtlsConfig: Properties,
@@ -25,30 +27,23 @@ class DTLSSocket(
     address: SocketAddress
 ) :
     DatagramSocket(address) {
+
     private val engine // The SSLEngine
             : SSLEngine
 
 
     init {
-
-        // for the following configs, take a look on exemplified
-        // dtls config files ... Possibly you have other interesting
-        // config support - json, xml or whatever ... would be great ;-)
         println("DTLS Config: $dtlsConfig")
         val protocol = dtlsConfig.getProperty("tlsVersion")
         engine = createSSLContext().createSSLEngine()
         if (is_server) //server endpoint
             setServerAuth(dtlsConfig.getProperty("authentication")) else  // client endpoint
             setProxyAuth(dtlsConfig.getProperty("authentication"))
-
-        // and for both ... In this way I have a common way to
-        // have common enabled ciphersuites for sure ...
-        // But you can decide to try with different csuites for each side
-        // but don't forget ... ou must have something in common
-        // The same for protocol versions you want to enable
         engine.enabledCipherSuites = dtlsConfig.getProperty("ciphersuites").split(",").toTypedArray()
         engine.enabledProtocols = arrayOf(protocol)
     }
+
+
 
     // Now let's go to make the SSL context (w/ SSL Context class)
     // See JSSE Docs and class slides
@@ -188,7 +183,7 @@ class DTLSSocket(
         }
         var status = engine.handshakeStatus
         while (status != HandshakeStatus.NOT_HANDSHAKING && status != HandshakeStatus.FINISHED) {
-            println("We shaking at $status with $address")
+//            println("We shaking at $status with $address")
             status = when (status) {
                 HandshakeStatus.NEED_TASK -> runTasks()
                 HandshakeStatus.NEED_WRAP -> wrap(address!!)
@@ -220,10 +215,10 @@ class DTLSSocket(
 //            println("send loop")
 //        }
 
-        println("Sent ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
+//        println("Sent ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         encrypt(p)
 
-        println("SentEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
+//        println("SentEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         super.send(p)
     }
 
@@ -243,10 +238,10 @@ class DTLSSocket(
         while (ctHash == ptHash) {
             super.receive(p)
             ctHash = p.data.contentHashCode()
-            println("RecvEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
+//            println("RecvEnc ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
             decrypt(p)
             ptHash = p.data.contentHashCode()
-            println("Recv ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
+//            println("Recv ${p.length}\n---\n ${String(p.data,0,p.length)}\n==========================")
         }
     }
 
@@ -303,6 +298,7 @@ class DTLSSocket(
         private const val SERVER = "SSERVER" //server side
         private const val SSL_CONTEXT = "DTLS"
     }
+
 
 
 }

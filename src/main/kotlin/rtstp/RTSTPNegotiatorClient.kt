@@ -8,9 +8,12 @@ import rtstp.dto.RequestAndCredentialsDto
 import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
 import secureDatagrams.SecureRTSTPSocket
+import java.io.FileInputStream
 import java.net.DatagramPacket
+import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.SecureRandom
+import java.util.*
 
 @ExperimentalSerializationApi
 class RTSTPNegotiatorClient(
@@ -19,16 +22,28 @@ class RTSTPNegotiatorClient(
 ) {
     private var lastN1: Int? = null
 
-    private val inSocket = SecureRTSTPSocket(
-        streamInfo.component1().settings,
-        streamInfo.component1().port
-    )
-    private val outSocket = SecureRTSTPSocket(streamInfo.component1().settings)
+    private val socket: SecureRTSTPSocket
+
+    init {
+        val inputStream = FileInputStream("config/signal/dtls.properties")
+        val p = Properties()
+        p.load(inputStream)
+        socket = SecureRTSTPSocket(
+            streamInfo.component1().settings,
+            "config/trustbase.p12",
+            "config/proxy/selftls.p12",
+            p,
+            false,
+            InetSocketAddress(streamInfo.component1().port)
+        )
+        socket.doHandshake(outSocketAddress)
+    }
+
     private val random = SecureRandom()
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
+        this.socket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
     fun negotiate(): SecureRTSTPSocket {
@@ -36,7 +51,7 @@ class RTSTPNegotiatorClient(
         val ackVerificationDto = receiveVerification()
         sendAckVerification(ackVerificationDto)
         //receiveSyncInitialFrame(syncInitialFrameDto)
-        return inSocket
+        return this.socket
     }
 
     private fun sendAckVerification(ackVerificationDto: Pair<Int, Int>) {
@@ -64,7 +79,7 @@ class RTSTPNegotiatorClient(
     private fun receivePacket(): EncapsulatedPacket {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
-        inSocket.receiveCustom(inPacket)
+        this.socket.receiveCustom(inPacket)
         val data = EncapsulatedPacket(inPacket)
         if (data.version != EncapsulatedPacket.VERSION) {
             throw RuntimeException("Wrong Packet Version")

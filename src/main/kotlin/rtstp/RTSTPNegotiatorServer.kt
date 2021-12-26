@@ -9,6 +9,7 @@ import sadkdp.auth.AuthHelper
 import sadkdp.dto.TicketCredentialsDto
 import secureDatagrams.EncapsulatedPacket
 import secureDatagrams.SecureRTSTPSocket
+import java.io.FileInputStream
 import java.net.DatagramPacket
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -16,14 +17,30 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
+import java.util.*
 
 @ExperimentalSerializationApi
 class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
     private var lastNa2: Int? = null
-    private val inSocket = SecureRTSTPSocket(port)
-    private val outSocket = SecureRTSTPSocket()
+    private val socket:SecureRTSTPSocket
     private val random = SecureRandom()
     private lateinit var outSocketAddress: SocketAddress;
+
+    init {
+
+        val inputStream = FileInputStream("config/signal/dtls.properties")
+        val p = Properties()
+        p.load(inputStream)
+        socket = SecureRTSTPSocket(
+            null,
+            "config/trustbase.p12",
+            "config/streaming/selftls.p12",
+            p,
+            true,
+            InetSocketAddress(port)
+        )
+        socket.doHandshake(null)
+    }
 
 
     private fun publicKey(alias: String): PublicKey {
@@ -36,18 +53,17 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
 
     private inline fun <reified T> sendPacket(dto: T, msgType: Byte, socketAddress: SocketAddress) {
         val toSend = ProtoBuf.encodeToByteArray(dto)
-        outSocket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
+        this.socket.sendCustom(DatagramPacket(toSend, toSend.size, socketAddress), msgType)
     }
 
     fun awaitNegotiation(): Triple<InetSocketAddress, String, SecureRTSTPSocket> {
         val (content, verificationDto) = receiveRequestAndCredentials()
         val (ip, port, movieId, settings, _) = content
-        inSocket.useSettings(settings)
-        outSocket.useSettings(settings)
-        outSocketAddress = InetSocketAddress(ip, 9999)
+        this.socket.useSettings(settings)
+        outSocketAddress = InetSocketAddress(ip, port)//TODO Test if change port breaks
         sendVerification(verificationDto)
         receiveAckVerification()
-        return Triple(InetSocketAddress(ip, port), movieId, outSocket)
+        return Triple(InetSocketAddress(ip, port), movieId, this.socket)
     }
 
     private fun receiveAckVerification(): Pair<Int, Int> {
@@ -76,7 +92,7 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
     private fun receivePacket(): EncapsulatedPacket {
         val buffer = ByteArray(4 * 1024)
         val inPacket = DatagramPacket(buffer, buffer.size)
-        inSocket.receiveCustom(inPacket)
+        this.socket.receiveCustom(inPacket)
         val data = EncapsulatedPacket(inPacket)
         if (data.version != EncapsulatedPacket.VERSION) {
             throw RuntimeException("Wrong Packet Version")

@@ -2,7 +2,10 @@ package secureDatagrams
 
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.InetSocketAddress
+import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.SecretKey
@@ -10,7 +13,7 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 
-class SecureRTSTPSocket : DatagramSocket {
+class SecureRTSTPSocket : DTLSSocket {
 
     private lateinit var encryptCipher: Cipher
     private lateinit var decryptCipher: Cipher
@@ -18,16 +21,47 @@ class SecureRTSTPSocket : DatagramSocket {
     private lateinit var hMac: Mac
     private lateinit var sett: Settings
 
-    constructor() : super()
+//    constructor(
+//
+//        ksTrustPath: String,
+//        ksKeysPath: String,
+//        dtlsConfig: Properties,
+//        is_server: Boolean,
+//        address: SocketAddress
+//    ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address)
+//
+//    constructor(
+//        port: Int,
+//        ksTrustPath: String,
+//        ksKeysPath: String,
+//        dtlsConfig: Properties,
+//        is_server: Boolean,
+//        address: SocketAddress
+//    ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address)
+//
+//    constructor(
+//        settings: Settings, port: Int,
+//        ksTrustPath: String,
+//        ksKeysPath: String,
+//        dtlsConfig: Properties,
+//        is_server: Boolean,
+//        address: SocketAddress
+//        ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address) {
+//        useSettings(settings)
+//    }
 
-    constructor(port: Int) : super(port)
+    constructor(
+        settings: Settings?,
+        ksTrustPath: String,
+        ksKeysPath: String,
+        dtlsConfig: Properties,
+        is_server: Boolean,
+        address: SocketAddress
+    ) : super(ksTrustPath, ksKeysPath, dtlsConfig, is_server, address) {
 
-    constructor(settings: Settings, port: Int) : super(port) {
-        useSettings(settings)
-    }
-
-    constructor(settings: Settings) {
-        useSettings(settings)
+        if (settings != null) {
+            useSettings(settings)
+        }
     }
 
     fun useSettings(settings: Settings) {
