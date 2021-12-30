@@ -39,7 +39,9 @@ class RTSTPNegotiatorServer(port: Int, private val keyStore: KeyStore) {
             true,
             InetSocketAddress(port)
         )
-        socket.doHandshake(null)
+
+        val ad = p.getProperty("proxyAddress").split(":")
+        socket.doHandshake(InetSocketAddress(ad[0],ad[1].toInt()))
     }
 
 

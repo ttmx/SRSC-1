@@ -256,7 +256,7 @@ open class DTLSSocket//server endpoint
         // of DTLS endpoints ...
         private const val MUTUAL = "MUTUAL"
         private const val PROXY = "PROXY" //client side
-        private const val SERVER = "SSERVER" //server side
+        private const val SERVER = "SERVER" //server side
         private const val SSL_CONTEXT = "DTLS"
     }
 

@@ -52,7 +52,8 @@ class AuthServer(
             p,
             true,
             InetSocketAddress(listenPort))
-        socket.doHandshake(null)
+        val ad = p.getProperty("proxyAddress").split(":")
+        socket.doHandshake(InetSocketAddress(ad[0],ad[1].toInt()))
 //        Thread.sleep(6000)
 
     }
